@@ -18,7 +18,8 @@ from plots import plot_information_plane
 if __name__ == "__main__":
     mnist_net, all_repre, label_y = mnist_training(Retrain=True)
     mnist_testing(mnist_net)
-
+    aa = input()
+    
     with open("mnist_net_config.pkl","rb") as f:
         _, mnist_epochs, num_layers, _ = pickle.load(f)
 
@@ -72,9 +73,9 @@ if __name__ == "__main__":
     for layer_idx in range(num_layers):
         ax.plot(all_mi_input[layer_idx], all_mi_label[layer_idx], color = color[layer_idx % 3], linewidth=1, alpha=0.6)
 
-    print(f"elapsed time = {time.time() - time1}\nnoise_var = {noise_var}\n{num_layers} layers/{mnist_epochs} epochs\n\n")
+    print(f"Total elapsed time = {time.time() - time1}\nnoise_var = {noise_var}\n{num_layers} layers/{mnist_epochs} epochs\n\n")
 
-    plt.show()
+    # plt.show()
     plt.savefig("information_plane.png")
 
     plot_information_plane(all_mi_input, all_mi_label, 3)

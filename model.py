@@ -12,14 +12,18 @@ import time
 class MNIST_Net(nn.Module):
     def __init__(self):
         super(MNIST_Net, self).__init__()
-        self.fc1 = nn.Linear(784, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, 10)
+        # self.fc1 = nn.Linear(784, 256)
+        # self.fc2 = nn.Linear(256, 128)
+        # self.fc3 = nn.Linear(128, 10)
+
+        self.fc1 = nn.Linear(28*28, 500)
+        self.fc2 = nn.Linear(500, 256)
+        self.fc3 = nn.Linear(256, 10)
     
     def forward(self,x):
         t1 = F.relu(self.fc1(x))
         t2 = F.relu(self.fc2(t1))
-        t3 = F.relu(self.fc3(t2)) # 下次放tanh看看
+        t3 = self.fc3(t2) # 下次放tanh看看
         return t1, t2, t3
 
 

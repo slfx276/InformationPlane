@@ -34,19 +34,22 @@ def find_value(twoDimList, v_type="min"):
     elif v_type == "max":
         return max([max(layer_mi) for layer_mi in twoDimList ])
 
-def plot_information_plane(mi_x, mi_y, total_layers):
+def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
     fig, axs = plt.subplots(1, 1, sharex=True, sharey=True)
-    axs.set_xlim(find_value(mi_x), find_value(mi_x, v_type="max"))
-    axs.set_ylim(find_value(mi_y), find_value(mi_y, v_type="max"))
+    fig.suptitle(title)
+    axs.set_xlim(0, find_value(mi_x, v_type="max") + 0.2)
+    axs.set_ylim(0, find_value(mi_y, v_type="max") + 0.2)
 
     PlotBar = False
     for layer_idx in range(total_layers):
         PlotBar = True
         lc = plot_figures(mi_x[layer_idx], mi_y[layer_idx], axs)
         line = axs.add_collection(lc)
-        if not PlotBar:
-            fig.colorbar(line, ax=axs)
-
+        # fig.colorbar(line, ax=axs)
+        # if not PlotBar:
+        #     fig.colorbar(line, ax=axs)
+    fig.colorbar(line, ax=axs)
+    plt.savefig(title + ".png")
     plt.show()
 
 

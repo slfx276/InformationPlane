@@ -19,9 +19,9 @@ logger = utils.Create_Logger(__name__)
 
 # MNIST hyper parameters
 batch_size = 1024
-mnist_epochs = 4
+mnist_epochs = 20
 num_layers = 3
-dimensions = [256, 128, 10]
+dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
 
 # save model config
 with open("mnist_net_config.pkl","wb") as f:

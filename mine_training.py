@@ -57,7 +57,7 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 200, 
         if SHOW:
             plt.plot(-plot_y)
         
-    final_mi = np.mean(-plot_y[-50:])
+    final_mi = np.mean(-plot_y[-35:])
     if SHOW:
         plt.show()
         
@@ -98,7 +98,7 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         plot_y = np.array(plot_loss).reshape(-1,)
         if SHOW:
             plt.plot(-plot_y)
-    final_mi = np.mean(-plot_y[-50:])
+    final_mi = np.mean(-plot_y[-35:])
     
     if SHOW:
         plt.show()
