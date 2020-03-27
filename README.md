@@ -42,7 +42,7 @@ optional arguments:
 
 ### Usage
 ```
-python main.py -re -show -bs 1024 -e 10
+python main.py -cls -re -show -bs 1024 -e 5 -bg 30
 ```
 
 
