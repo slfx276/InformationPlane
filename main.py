@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) + "_mie" + str(n_epoch) + "_amie" + str(aan_epoch) 
     for layer_idx in range(num_layers):
-        title = title + "_" + str(split_all_repre[layer_idx][bg_idx][0].shape[1])
+        title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
 
     print(f"image title = {title}\n")
     print(f"Total elapsed time = {time.time()-time1}")
