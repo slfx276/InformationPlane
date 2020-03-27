@@ -66,11 +66,16 @@ def get_parser():
     parser.add_argument("-var", "--noisevariance", type=float, default=0.2, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
-    parser.add_argument("-mie", "--mineepoch", type=int, default=120, dest = "mine_epoch",
+    parser.add_argument("-mie", "--mineepoch", type=int, default=130, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-bg", "--bgroup", type=int, default=59, dest = "batch_group",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=150, dest = "aamine_epoch",
                         help="how many batch do you want to combined into a group in order to calculate MI")
+
+    # 59 because 1024*59 > 60000
+    parser.add_argument("-bg", "--bgroup", type=int, default=59, dest = "batch_group", 
+                        help="how many batch do you want to combined into a group in order to calculate MI")
+
 
     # parser.add_argument("-show", "--showmine", type=bool, default=False, dest="show", 
     #                         help="show MINE training trend. (need GUI)")

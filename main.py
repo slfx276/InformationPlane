@@ -28,9 +28,10 @@ if __name__ == "__main__":
     show = args.show
     noise_var = args.noise_var
     n_epoch = args.mine_epoch
+    aan_epoch = args.aamine_epoch
 
-    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
-    logger.info(f"args2: show={show}, noise_var={noise_var}, n_epoch={n_epoch}")
+    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}, batch group={batch_group}")
+    logger.info(f"args2: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
     # train MNIST model
     mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
@@ -58,14 +59,20 @@ if __name__ == "__main__":
             for batch_idx in range((60000 // samples_size) + 1):
 
                 if batch_idx == (60000 // samples_size):
-                    split_all_repre[l_idx][e_idx].append(all_repre[l_idx][e_idx][samples_size*batch_idx:, ])
+                    try:
+                        split_all_repre[l_idx][e_idx].append(all_repre[l_idx][e_idx][samples_size*batch_idx:, ])
+                    except: # May occur IndexError or something
+                        logger.error("last iteration of seperating batch group.", l_idx, e_idx, batch_idx)
+                        logger.error("Errors may caused by mnist training epochs setting mismatch.")
+                        exit(0)
+
                 else:
                     try:
                         split_all_repre[l_idx][e_idx].append(all_repre[l_idx][e_idx][samples_size * batch_idx:samples_size*(batch_idx + 1), ])
-                        print(all_repre[l_idx][e_idx][samples_size * batch_idx:samples_size*(batch_idx + 1), ].shape)
                     except:
                         print(l_idx, e_idx, samples_size*(batch_idx + 1))
-                        break
+                        exit(0)
+                        
     
     # print(len(split_all_repre[l_idx][e_idx]),len(split_all_repre[l_idx][e_idx][0]))
 
@@ -78,8 +85,10 @@ if __name__ == "__main__":
         
         # To get better convergence value, we need to adjus MINE model training epochs for different layers
         if layer_idx < 1:
-            n_epoch = args.mine_epoch + 40
+            aan_epoch = args.mine_epoch + 60
+            n_epoch = args.mine_epoch + 20
         else:
+            aan_epoch = args.mine_epoch
             n_epoch = args.mine_epoch
 
         # for layer representations of each epoch
@@ -97,7 +106,7 @@ if __name__ == "__main__":
                 try:
                     all_mi_input[layer_idx].append(mi_aamine(split_all_repre[layer_idx][epoch][bg_idx], 
                             input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2, noise_var = noise_var, 
-                            SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                            SHOW=show, n_epoch = aan_epoch, layer_idx = layer_idx, epoch_idx = epoch))
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                     exit(0)
@@ -119,7 +128,7 @@ if __name__ == "__main__":
     plt.cla() # clear privious plot
     plt.close("all")
 
-    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) + "_mie" + str(n_epoch) 
+    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) + "_mie" + str(n_epoch) + "_amie" + str(aan_epoch) 
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][bg_idx][0].shape[1])
 
@@ -130,9 +139,6 @@ if __name__ == "__main__":
 
 
 # ----------------------------------------
-
-
-
 
 
     exit(0)
