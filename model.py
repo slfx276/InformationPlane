@@ -10,6 +10,11 @@ import time
 
 # define MNIST classification model
 class MNIST_Net(nn.Module):
+    '''
+        if you change MNIST model dimension, 
+        You have to adjust dimensions setting in "training.py".
+        
+    '''
     def __init__(self):
         super(MNIST_Net, self).__init__()
         # self.fc1 = nn.Linear(784, 256)

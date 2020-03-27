@@ -17,30 +17,30 @@ import utils
 
 logger = utils.Create_Logger(__name__)
 
-# MNIST hyper parameters
-batch_size = 1024
-mnist_epochs = 20
-num_layers = 3
-dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
-
-# save model config
-with open("mnist_net_config.pkl","wb") as f:
-    pickle.dump((batch_size, mnist_epochs, num_layers, dimensions), f)
-
-# create storage of hidden layer representations 
-repre_t = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
-label_y = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
-all_repre = []
-for layer_idx in range(num_layers):
-    all_repre.append([])
-    for epoch in range(mnist_epochs):
-        all_repre[layer_idx].append(np.empty(shape = [0, dimensions[layer_idx]]))
-
-
-
-def mnist_training(Retrain = False):
+def mnist_training(batch_size, mnist_epochs, Retrain = False):
     time1 = time.time()
 
+
+    # create storage container of hidden layer representations 
+    dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
+    num_layers = len(dimensions)
+
+    repre_t = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
+    label_y = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
+
+    all_repre = []
+    for layer_idx in range(num_layers):
+        all_repre.append([])
+        for epoch in range(mnist_epochs):
+            all_repre[layer_idx].append(np.empty(shape = [0, dimensions[layer_idx]]))
+
+    # save training model config
+    with open("mnist_net_config.pkl","wb") as f:
+        pickle.dump((batch_size, mnist_epochs, num_layers, dimensions), f)
+
+
+
+    # load privious representation record
     if Retrain == False and os.path.exists("mnist_net.pkl"):
         print("Loading MNIST model...")
         mnist_net = torch.load("mnist_net.pkl")
@@ -74,10 +74,10 @@ def mnist_training(Retrain = False):
             # 梯度清空
             optimizer.zero_grad()
 
-            # Forward + Backward
+            # Forward 
             t1, t2, outputs = mnist_net(inputs)
             
-            # layer information
+            # layer transformation
             t1, t2, outputs_np = t1.cpu().detach().numpy(), t2.cpu().detach().numpy(), \
                                                     outputs.cpu().detach().numpy()
             inputs_np = inputs.cpu().detach().numpy()
@@ -95,7 +95,7 @@ def mnist_training(Retrain = False):
             all_repre[1][epoch] = np.concatenate((all_repre[1][epoch], t2), axis = 0)
             all_repre[2][epoch] = np.concatenate((all_repre[2][epoch], outputs_np), axis = 0)
 
-            
+            # backward
             loss = criterion(outputs, labels)
             loss.backward()
             
@@ -118,7 +118,7 @@ def mnist_training(Retrain = False):
     
     return mnist_net, all_repre, label_y
 
-def mnist_testing(mnist_net):
+def mnist_testing(mnist_net, batch_size):
     # Test
     correct = 0
     total = 0

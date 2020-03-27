@@ -4,7 +4,11 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.colors import LinearSegmentedColormap
 
-def plot_figures(x, y, axs):
+
+
+cmap = ["viridis", "plasma", "cividis", "magma", "inferno"]
+
+def plot_figures(x, y, axs, cmap_idx = 0):
     '''
         plot a multi-colored line on figure.
     '''
@@ -20,8 +24,8 @@ def plot_figures(x, y, axs):
     # Create a continuous norm to map from data points to colors
     norm = plt.Normalize(0, len(x) )
 
-    lc = LineCollection(segments, cmap='viridis', norm=norm)
-
+    lc = LineCollection(segments, cmap = cmap[cmap_idx], norm=norm)
+    
     # Set the values used for colormapping
     lc.set_array(np.arange(0, len(x), 1))
 
@@ -43,20 +47,20 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
     PlotBar = False
     for layer_idx in range(total_layers):
         PlotBar = True
-        lc = plot_figures(mi_x[layer_idx], mi_y[layer_idx], axs)
+        lc = plot_figures(mi_x[layer_idx], mi_y[layer_idx], axs, cmap_idx = layer_idx % 5 )
         line = axs.add_collection(lc)
         # fig.colorbar(line, ax=axs)
         # if not PlotBar:
-        #     fig.colorbar(line, ax=axs)
-    fig.colorbar(line, ax=axs)
+        fig.colorbar(line, ax=axs)
+    # fig.colorbar(line, ax=axs)
     plt.savefig(title + ".png")
     plt.show()
 
 
 if __name__ == "__main__":
-    layer_num = 2
-    mi_x = [[1, 2, 5, 6],[7, 5, 8,11]]
-    mi_y = [[i for i in range(4)] for j in range(2)]
-    plot_ip(mi_x, mi_y, layer_num)
+    mi_x = [[1, 2, 5, 6],[7, 5, 8,11], [4, 5, 6, 7], [1, 3, 5, 7]]
+    mi_y = [[i for i in range(4)] for j in range(len(mi_x))]
+    layer_num = len(mi_x)
+    plot_information_plane(mi_x, mi_y, layer_num)
 
 
