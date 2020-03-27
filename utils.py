@@ -85,6 +85,8 @@ def get_parser():
 
     parser.add_argument("-show", "--showmine",  action="store_true", dest="show", 
                             help="show and save MINE training trend. (need GUI)")
-
+                            
+    parser.add_argument("-cls", "--cleanfile",  action="store_true", dest="clean_old_files", 
+                            help="clean old data before creating new ones")
 
     return parser.parse_args()

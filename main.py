@@ -9,15 +9,23 @@ from torchvision import datasets, transforms
 import time
 import os
 import pickle
+import shutil
 
 from training import mnist_training, mnist_testing
 from mine_training import mi_aamine, mi_mine
 from plots import plot_information_plane
 from utils import get_parser, Create_Logger
 
+
 if __name__ == "__main__":
     args = get_parser()
     logger = Create_Logger(__name__)
+
+
+    if args.clean_old_files:
+        if os.path.exists("MINE"):
+            shutil.rmtree("MovieDataset", ignore_errors=True)
+            print("del directory : MINE ")
 
     # arguments passing
     mnist_epochs = args.mnist_epoch
@@ -116,11 +124,18 @@ if __name__ == "__main__":
                 print(f"elapsed time:{time.time()-time_stamp}\n")
 
                 time_stamp = time.time()
-                print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}/{label_y[epoch].shape}")
+                print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}/{label_y[epoch][:len(split_all_repre[layer_idx][epoch][bg_idx])].shape}")
                 try:
-                    all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch],
-                            input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
-                            SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                    # if not the last batch group
+                    if bg_idx != len(split_all_repre[l_idx][e_idx]) - 1: 
+                        all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx:samples_size * (bg_idx + 1)],
+                                input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
+                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                    # deal with the last batch group, which is not full samples size
+                    else:
+                        all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx: ],
+                                input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
+                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                 print(f"elapsed time:{time.time()-time_stamp}\n")
@@ -132,7 +147,8 @@ if __name__ == "__main__":
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][bg_idx][0].shape[1])
 
-    print(f"image title = {title}")
+    print(f"image title = {title}\n")
+    print(f"Total elapsed time = {time.time()-time1}")
 
     plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
