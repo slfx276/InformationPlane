@@ -135,6 +135,7 @@ def mnist_testing(mnist_net, batch_size):
 
         print('Accuracy of the MNIST network on the 10000 test images: %d %%\n' % (100*correct / total))
 
+    return 100 * correct / total
 
 if __name__ == "__main__":
     mnist_net, _, _ = mnist_training(Retrain=True)

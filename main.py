@@ -50,13 +50,11 @@ if __name__ == "__main__":
     mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
                         mnist_epochs = mnist_epochs, Retrain = args.retrain)
 
-    mnist_testing(mnist_net, batch_size)
+    acc = mnist_testing(mnist_net, batch_size)
     
     # load MNIST model hyper-parameters config
     with open("mnist_net_config.pkl","rb") as f:
         _, mnist_epochs, num_layers, _ = pickle.load(f)
-
-# ------------------------------------------------------------
 
 
     logger.info(f"seperate batches in the same training epoch in order to calculate MI more individully. ")
@@ -93,6 +91,8 @@ if __name__ == "__main__":
     all_mi_input = [[] for i in range(num_layers)]
     time1 = time.time()
 
+# ------------- start to calculate MI --------------
+
     # use AA-MINE for estimating Information Bottleneck
     for layer_idx in range(num_layers):
         
@@ -126,6 +126,7 @@ if __name__ == "__main__":
                 # except RuntimeError:
                 #     print(f"== RuntimeError == input_dim = {split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2}")
                 #     exit(0)
+
                 print(f"elapsed time:{time.time()-time_stamp}\n")
 
                 time_stamp = time.time()
@@ -146,6 +147,7 @@ if __name__ == "__main__":
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                 
+                # for debugging, prevent loss from being NaN
                 if math.isnan(all_mi_input[layer_idx][-1]):
                     logger.error(f"AAMINE Mutual Inforamtion is NaN!!!")
                     exit(0)
@@ -166,58 +168,9 @@ if __name__ == "__main__":
         title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
 
     print(f"image title = {title}\n")
+    print(f"MNIST accuract = {acc}")
     print(f"Total elapsed time = {time.time()-time1}")
 
     plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
 
-
-# ----------------------------------------
-
-
-    exit(0)
-
-
-    all_mi_label = [[] for i in range(num_layers)]
-    all_mi_input = [[] for i in range(num_layers)]
-    time1 = time.time()
-
-    # use AA-MINE for estimating Information Bottleneck
-    for layer_idx in range(num_layers):
-        for epoch in range(mnist_epochs):
-            time_stamp = time.time()
-            print(f"AA-MINE -> {layer_idx}-th layer representation, in {epoch}-th epoch. \n shape = {all_repre[layer_idx][epoch].shape}")
-            try:
-                all_mi_input[layer_idx].append(mi_aamine(all_repre[layer_idx][epoch], 
-                        input_dim = all_repre[layer_idx][epoch].shape[1]*2, noise_var = noise_var, 
-                        SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
-            except IndexError:
-                print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
-                exit(0)
-            # except RuntimeError:
-            #     print(f"== RuntimeError == input_dim = {all_repre[layer_idx][epoch].shape[1]*2}")
-            #     exit(0)
-            print(f"elapsed time:{time.time()-time_stamp}\n")
-
-    # use normal MINE for estimating Information Bottleneck
-    for layer_idx in range(num_layers):
-        for epoch in range(mnist_epochs):
-
-            time_stamp = time.time()
-            print(f"MINE -> {layer_idx}-th layer representation, in {epoch}-th epoch. \n shape = {all_repre[layer_idx][epoch].shape}/{label_y[epoch].shape}")
-            try:
-                all_mi_label[layer_idx].append(mi_mine(all_repre[layer_idx][epoch], label_y[epoch],
-                        input_dim = all_repre[layer_idx][epoch].shape[1] + label_y[epoch].shape[1],
-                        SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
-            except IndexError:
-                print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
-
-            print(f"elapsed time:{time.time()-time_stamp}\n\n")
-
-    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) + "_mie" + str(n_epoch) 
-    for layer_idx in range(num_layers):
-        title = title + "_" + str(all_repre[layer_idx][0].shape[1])
-
-    print(f"image title = {title}")
-
-    plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)

@@ -25,8 +25,6 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of AA-MINE= {epoch}")
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
         y_sample = add_noise(x_sample, var = noise_var)
@@ -36,14 +34,8 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_shuffle = Variable(torch.from_numpy(y_shuffle).type(torch.FloatTensor), requires_grad = True).cuda()
 
-        # try:
         pred_xy = model(x_sample, y_sample)
         pred_x_y = model(x_sample, y_shuffle)
-        # except:
-        #     print("x sample : ", type(x_sample), x_sample.shape)
-        #     print("y sample :", type(y_sample), y_sample.shape)
-        #     print("y shuffle :", type(y_shuffle), y_shuffle.shape)
-        #     exit(0)
 
         ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y)))
         loss = - ret  # maximize
@@ -73,8 +65,6 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of MINE= {epoch}")
 
         x_sample = representation_t
         y_sample = y_label
