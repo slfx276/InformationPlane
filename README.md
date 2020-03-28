@@ -48,7 +48,7 @@ optional arguments:
 ```
 python main.py -cls -re -show -bs 1024 -e 5 -bg 30 -amie 180 -mie 150
 ```
-
+figures of MINE training would be saved in folder "mine".
 
 ### reference
 - [how to plot multi-colored line with matplotlib](https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/multicolored_line.html)  
