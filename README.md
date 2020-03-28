@@ -44,11 +44,13 @@ optional arguments:
 
 ```
 
-### Usage 
+### Usage Example
 ```
-python main.py -cls -re -show -bs 1024 -e 5 -bg 30 -amie 180 -mie 150
+python main.py -cls -re -show -bs 1024 -e 5 -bg 60 -amie 200 -mie 200 -f bs1024e5bg60amie250mie200
 ```
-figures of MINE training would be saved in folder "mine".
+Then figures of MINE training process would be saved in folder "bs1024e5bg60amie250mie200".  
+and information plane would be saved as "ip_bs1024_e5_var0.2_mie200_amie200_500_256_10.png" in current path.
+
 
 ### reference
 - [how to plot multi-colored line with matplotlib](https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/multicolored_line.html)  
