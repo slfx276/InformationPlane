@@ -10,6 +10,7 @@ import time
 import os
 import pickle
 import shutil
+import math
 
 from training import mnist_training, mnist_testing
 from mine_training import mi_aamine, mi_mine
@@ -21,12 +22,6 @@ if __name__ == "__main__":
     args = get_parser()
     logger = Create_Logger(__name__)
 
-
-    if args.clean_old_files:
-        if os.path.exists("MINE"):
-            shutil.rmtree("MovieDataset", ignore_errors=True)
-            print("del directory : MINE ")
-
     # arguments passing
     mnist_epochs = args.mnist_epoch
     batch_size = args.batch_size
@@ -37,9 +32,19 @@ if __name__ == "__main__":
     noise_var = args.noise_var
     n_epoch = args.mine_epoch
     aan_epoch = args.aamine_epoch
+    folder_name = args.folder_name
 
-    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}, batch group={batch_group}")
-    logger.info(f"args2: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
+    if args.clean_old_files:
+        if os.path.exists(folder_name):
+            shutil.rmtree(folder_name, ignore_errors=True)
+            print(f"del directory : {folder_name}")
+        if show:
+            os.mkdir(folder_name)
+
+
+    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
+    logger.info(f"args2: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
+    logger.info(f"args3: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
     # train MNIST model
     mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
@@ -93,7 +98,7 @@ if __name__ == "__main__":
         
         # To get better convergence value, we need to adjus MINE model training epochs for different layers
         if layer_idx < 1:
-            aan_epoch = args.mine_epoch + 60
+            aan_epoch = args.mine_epoch + 100
             n_epoch = args.mine_epoch + 20
         else:
             aan_epoch = args.mine_epoch
@@ -114,7 +119,7 @@ if __name__ == "__main__":
                 try:
                     all_mi_input[layer_idx].append(mi_aamine(split_all_repre[layer_idx][epoch][bg_idx], 
                             input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2, noise_var = noise_var, 
-                            SHOW=show, n_epoch = aan_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                            SHOW=show, n_epoch = aan_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx))
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                     exit(0)
@@ -130,14 +135,27 @@ if __name__ == "__main__":
                     if bg_idx != len(split_all_repre[l_idx][e_idx]) - 1: 
                         all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx:samples_size * (bg_idx + 1)],
                                 input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
-                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx, 
+                                folder = folder_name))
                     # deal with the last batch group, which is not full samples size
                     else:
                         all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx: ],
                                 input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
-                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx, 
+                                folder = folder_name))
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
+                
+                if math.isnan(all_mi_input[layer_idx][-1]):
+                    logger.error(f"AAMINE Mutual Inforamtion is NaN!!!")
+                    exit(0)
+                if math.isnan(all_mi_label[layer_idx][-1]):
+                    logger.error(f"Mutual information is NaN!!!")
+                    print(split_all_repre[layer_idx][epoch][bg_idx])
+                    print(label_y[epoch][samples_size * bg_idx:samples_size * (bg_idx + 1)])
+                    print(all_mi_label[layer_idx][-1])
+                    exit(0)
+
                 print(f"elapsed time:{time.time()-time_stamp}\n")
                 
     plt.cla() # clear privious plot

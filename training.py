@@ -25,7 +25,6 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False):
     dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
     num_layers = len(dimensions)
 
-    repre_t = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
     label_y = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
 
     all_repre = []
@@ -83,8 +82,6 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False):
             inputs_np = inputs.cpu().detach().numpy()
             labels_np = labels.cpu().detach().numpy()
             
-            # store inputs and predicted representation T
-            repre_t[epoch] = np.concatenate((repre_t[epoch], outputs_np), axis = 0)
             # transform label to one-hot encoding and save it.
             label_y[epoch] = np.concatenate((label_y[epoch], np.eye(10)[labels_np]),
                                             axis = 0)

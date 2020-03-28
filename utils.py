@@ -70,15 +70,14 @@ def get_parser():
                             help="training epochs of MINE model while estimating mutual information")
 
     parser.add_argument("-amie", "--amineepoch", type=int, default=150, dest = "aamine_epoch",
-                        help="how many batch do you want to combined into a group in order to calculate MI")
+                            help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
     parser.add_argument("-bg", "--bgroup", type=int, default=59, dest = "batch_group", 
-                        help="how many batch do you want to combined into a group in order to calculate MI")
+                            help="how many batch do you want to combined into a group in order to calculate MI")
 
-
-    # parser.add_argument("-show", "--showmine", type=bool, default=False, dest="show", 
-    #                         help="show MINE training trend. (need GUI)")
+    parser.add_argument("-f", "--folder", type=str, default="mine", dest="folder_name", 
+                            help="the name of folder which you create for saving MINE training trend.")
     
     parser.add_argument("-re", "--retrain", action="store_true", dest="retrain", 
                             help="Retrain MNIST model and then store new representations")
