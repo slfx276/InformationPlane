@@ -51,7 +51,8 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
         line = axs.add_collection(lc)
         # fig.colorbar(line, ax=axs)
         # if not PlotBar:
-        fig.colorbar(line, ax=axs)
+        cbar = fig.colorbar(line, ax=axs)
+        cbar.set_label(f"l{layer_idx}") ###############
     # fig.colorbar(line, ax=axs)
     plt.savefig(title + ".png")
     plt.show()

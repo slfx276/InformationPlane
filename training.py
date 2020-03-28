@@ -17,7 +17,7 @@ import utils
 
 logger = utils.Create_Logger(__name__)
 
-def mnist_training(batch_size, mnist_epochs, Retrain = False):
+def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, opt = "sgd"):
     time1 = time.time()
 
 
@@ -56,7 +56,11 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False):
 
     # Loss and Optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(mnist_net.parameters(), lr=0.001, momentum=0.9)
+
+    if opt == "sgd":
+        optimizer = torch.optim.SGD(mnist_net.parameters(), lr = lr, momentum = 0.9)
+    elif opt == "adam":
+        optimizer = torch.optim.Adam(mnist_net.parameters(), lr = lr)
 
     # Training
     for epoch in range(mnist_epochs):
@@ -64,9 +68,9 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False):
         running_loss = 0
         
         for i, data in enumerate(trainLoader, 0):
-            
             # 輸入資料
             inputs, labels = data[0].to(device), data[1].to(device)
+            
             # 使用 view() 將 inputs 的維度壓到符合模型的輸入。
             inputs = inputs.view(inputs.shape[0], -1) 
         
@@ -134,8 +138,8 @@ def mnist_testing(mnist_net, batch_size):
             correct += (predicted == labels).sum().item()
 
         print('Accuracy of the MNIST network on the 10000 test images: %d %%\n' % (100*correct / total))
-
-    return 100 * correct / total
+    
+    return 100*correct/total
 
 if __name__ == "__main__":
     mnist_net, _, _ = mnist_training(Retrain=True)
