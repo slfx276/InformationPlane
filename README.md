@@ -44,7 +44,7 @@ optional arguments:
 
 ```
 
-### Usage
+### Usage 
 ```
 python main.py -cls -re -show -bs 1024 -e 5 -bg 30 -amie 180 -mie 150
 ```
