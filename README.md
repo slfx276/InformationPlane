@@ -14,8 +14,8 @@ Calculating mutual information while training MNIST model by mutual information 
 ```
 usage: Create inputs of main.py [-h] [-bs BATCH_SIZE] [-e MNIST_EPOCH]
                                 [-var NOISE_VAR] [-mie MINE_EPOCH]
-                                [-amie AAMINE_EPOCH] [-bg BATCH_GROUP] [-re]
-                                [-show]
+                                [-amie AAMINE_EPOCH] [-bg BATCH_GROUP]
+                                [-f FOLDER_NAME] [-re] [-show] [-cls]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -35,14 +35,18 @@ optional arguments:
   -bg BATCH_GROUP, --bgroup BATCH_GROUP
                         how many batch do you want to combined into a group in
                         order to calculate MI
+  -f FOLDER_NAME, --folder FOLDER_NAME
+                        the name of folder which you create for saving MINE
+                        training trend.
   -re, --retrain        Retrain MNIST model and then store new representations
   -show, --showmine     show and save MINE training trend. (need GUI)
+  -cls, --cleanfile     clean old data before creating new ones
 
 ```
 
 ### Usage
 ```
-python main.py -cls -re -show -bs 1024 -e 5 -bg 30
+python main.py -cls -re -show -bs 1024 -e 5 -bg 30 -amie 180 -mie 150
 ```
 
 
