@@ -41,8 +41,10 @@ def find_value(twoDimList, v_type="min"):
 def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
     fig, axs = plt.subplots(1, 1, sharex=True, sharey=True)
     fig.suptitle(title)
-    axs.set_xlim(0, find_value(mi_x, v_type="max") + 0.2)
-    axs.set_ylim(0, find_value(mi_y, v_type="max") + 0.2)
+    axs.set_xlim(find_value(mi_x, v_type="min"), find_value(mi_x, v_type="max") + 0.2)
+    axs.set_ylim(find_value(mi_y, v_type="min"), find_value(mi_y, v_type="max") + 0.2)
+    axs.set_xlabel("I(T;X)")
+    axs.set_ylabel("I(T;Y)")
 
     PlotBar = False
     for layer_idx in range(total_layers):
@@ -51,7 +53,8 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
         line = axs.add_collection(lc)
         # fig.colorbar(line, ax=axs)
         # if not PlotBar:
-        fig.colorbar(line, ax=axs)
+        cbar = fig.colorbar(line, ax=axs)
+        cbar.set_label(f"l{layer_idx}") ###############
     # fig.colorbar(line, ax=axs)
     plt.savefig(title + ".png")
     plt.show()

@@ -78,6 +78,12 @@ def get_parser():
 
     parser.add_argument("-f", "--folder", type=str, default="mine", dest="folder_name", 
                             help="the name of folder which you create for saving MINE training trend.")
+
+    parser.add_argument("-opt", "--optimizer", type=str, default="sgd", dest="mnist_opt", 
+                            help="the optimizer used to train MNIST model.")
+                
+    parser.add_argument("-lr", "--lr", type=float, default = 0.001, dest = "mnist_lr", 
+                            help="initial learning rate used to train MNIST model.")
     
     parser.add_argument("-re", "--retrain", action="store_true", dest="retrain", 
                             help="Retrain MNIST model and then store new representations")

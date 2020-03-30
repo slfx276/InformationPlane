@@ -1,3 +1,15 @@
+########################
+# 2020/03/28 20:53
+# 1. add arguments: --lr, --optimizer, --folder
+# 2. add color bar label
+# 3. MNIST model training with different optimizer and learning rate
+
+########################
+
+
+
+
+
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -27,6 +39,8 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     retrain = args.retrain
     batch_group = args.batch_group
+    opt = args.mnist_opt
+    lr = args.mnist_lr
 
     show = args.show
     noise_var = args.noise_var
@@ -43,18 +57,22 @@ if __name__ == "__main__":
 
 
     logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
-    logger.info(f"args2: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
-    logger.info(f"args3: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
+    logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}")
+    logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
+    logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
     # train MNIST model
     mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
-                        mnist_epochs = mnist_epochs, Retrain = args.retrain)
+                        mnist_epochs = mnist_epochs, Retrain = args.retrain,
+                         lr = lr, opt = opt)
 
     acc = mnist_testing(mnist_net, batch_size)
     
     # load MNIST model hyper-parameters config
     with open("mnist_net_config.pkl","rb") as f:
         _, mnist_epochs, num_layers, _ = pickle.load(f)
+
+# ------------------------------------------------------------
 
 
     logger.info(f"seperate batches in the same training epoch in order to calculate MI more individully. ")
@@ -86,12 +104,11 @@ if __name__ == "__main__":
                         
     
     # print(len(split_all_repre[l_idx][e_idx]),len(split_all_repre[l_idx][e_idx][0]))
-
+    del all_repre
+    
     all_mi_label = [[] for i in range(num_layers)]
     all_mi_input = [[] for i in range(num_layers)]
     time1 = time.time()
-
-# ------------- start to calculate MI --------------
 
     # use AA-MINE for estimating Information Bottleneck
     for layer_idx in range(num_layers):
@@ -106,7 +123,8 @@ if __name__ == "__main__":
 
         # for layer representations of each epoch
         for epoch in range(mnist_epochs):
-            
+            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch.")
+
             # for different batch groups of the same epoch
             for bg_idx in range(len(split_all_repre[l_idx][e_idx])):
 
@@ -126,7 +144,6 @@ if __name__ == "__main__":
                 # except RuntimeError:
                 #     print(f"== RuntimeError == input_dim = {split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2}")
                 #     exit(0)
-
                 print(f"elapsed time:{time.time()-time_stamp}\n")
 
                 time_stamp = time.time()
@@ -147,7 +164,8 @@ if __name__ == "__main__":
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                 
-                # for debugging, prevent loss from being NaN
+
+                # for Debugging : prevent MINE loss from being NaN
                 if math.isnan(all_mi_input[layer_idx][-1]):
                     logger.error(f"AAMINE Mutual Inforamtion is NaN!!!")
                     exit(0)
@@ -163,14 +181,18 @@ if __name__ == "__main__":
     plt.cla() # clear privious plot
     plt.close("all")
 
-    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) + "_mie" + str(n_epoch) + "_amie" + str(aan_epoch) 
+    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
+        + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
+        "_amie" + str(aan_epoch) 
+
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
 
-    print(f"image title = {title}\n")
-    print(f"MNIST accuract = {acc}")
-    print(f"Total elapsed time = {time.time()-time1}")
+    logger.info(f"image title = {title}\n")
+    logger.info(f"MNIST accuracy = {acc}")
+    logger.info(f"Total elapsed time = {time.time()-time1}")
 
     plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
+#    print(all_mi_input, all_mi_label)
 
