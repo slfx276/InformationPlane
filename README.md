@@ -15,7 +15,8 @@ Calculating mutual information while training MNIST model by mutual information 
 usage: Create inputs of main.py [-h] [-bs BATCH_SIZE] [-e MNIST_EPOCH]
                                 [-var NOISE_VAR] [-mie MINE_EPOCH]
                                 [-amie AAMINE_EPOCH] [-bg BATCH_GROUP]
-                                [-f FOLDER_NAME] [-re] [-show] [-cls]
+                                [-f FOLDER_NAME] [-opt MNIST_OPT]
+                                [-lr MNIST_LR] [-re] [-show] [-cls]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,18 +39,23 @@ optional arguments:
   -f FOLDER_NAME, --folder FOLDER_NAME
                         the name of folder which you create for saving MINE
                         training trend.
+  -opt MNIST_OPT, --optimizer MNIST_OPT
+                        the optimizer used to train MNIST model.
+  -lr MNIST_LR, --lr MNIST_LR
+                        initial learning rate used to train MNIST model.
   -re, --retrain        Retrain MNIST model and then store new representations
   -show, --showmine     show and save MINE training trend. (need GUI)
   -cls, --cleanfile     clean old data before creating new ones
+
 
 ```
 
 ### Usage Example
 ```
-python main.py -cls -re -show -bs 1024 -e 5 -bg 60 -amie 200 -mie 200 -f bs1024e5bg60amie250mie200
+python main.py -cls -re -show -bs 1024 -bg 59 -e 10 -mie 200 -amie 200 -opt adam -var 0.03 -lr 0.01 -f bs1024bg59e10mie200amie200adamvar003lr001
 ```
-Then figures of MINE training process would be saved in folder "bs1024e5bg60amie250mie200".  
-and information plane would be saved as "ip_bs1024_e5_var0.2_mie200_amie200_500_256_10.png" in current path.
+Then figures of MINE training process would be saved in folder "bs1024bg59e10mie200amie200adamvar003lr001".  
+and information plane would be saved in current path.
 
 
 ### reference
