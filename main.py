@@ -104,7 +104,8 @@ if __name__ == "__main__":
                         
     
     # print(len(split_all_repre[l_idx][e_idx]),len(split_all_repre[l_idx][e_idx][0]))
-
+    del all_repre
+    
     all_mi_label = [[] for i in range(num_layers)]
     all_mi_input = [[] for i in range(num_layers)]
     time1 = time.time()
@@ -180,7 +181,8 @@ if __name__ == "__main__":
     plt.close("all")
 
     title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
-        + "_" + opt + "_lr" + str(lr*1000) + "_mie" + str(n_epoch) + "_amie" + str(aan_epoch) 
+        + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
+        "_amie" + str(aan_epoch) 
 
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])

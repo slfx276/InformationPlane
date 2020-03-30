@@ -43,6 +43,8 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
     fig.suptitle(title)
     axs.set_xlim(find_value(mi_x, v_type="min"), find_value(mi_x, v_type="max") + 0.2)
     axs.set_ylim(find_value(mi_y, v_type="min"), find_value(mi_y, v_type="max") + 0.2)
+    axs.set_xlabel("I(T;X)")
+    axs.set_ylabel("I(T;Y)")
 
     PlotBar = False
     for layer_idx in range(total_layers):
