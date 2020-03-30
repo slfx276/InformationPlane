@@ -123,7 +123,8 @@ if __name__ == "__main__":
 
         # for layer representations of each epoch
         for epoch in range(mnist_epochs):
-            
+            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch.")
+
             # for different batch groups of the same epoch
             for bg_idx in range(len(split_all_repre[l_idx][e_idx])):
 
@@ -187,11 +188,11 @@ if __name__ == "__main__":
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
 
-    print(f"image title = {title}\n")
-    print(f"MNIST accuracy = {acc}")
-    print(f"Total elapsed time = {time.time()-time1}")
+    logger.info(f"image title = {title}\n")
+    logger.info(f"MNIST accuracy = {acc}")
+    logger.info(f"Total elapsed time = {time.time()-time1}")
 
     plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
-    print(all_mi_input, all_mi_label)
+#    print(all_mi_input, all_mi_label)
 
