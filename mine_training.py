@@ -52,11 +52,11 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y, color = "b", label="AA-MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y, color = "b", label="AA-MINE")
            
         
     final_mi = np.mean(-plot_y[-35:])
@@ -94,16 +94,17 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y,color='r', label="MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y,color='r', label="MINE")
     
     final_mi = np.mean(-plot_y[-35:])
     
     if SHOW:
-
+        if not os.path.exists(folder):
+            os.mkdir(folder)
         plt.legend(loc='upper right')
         title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
         plt.title(title + "_MI = " + str(final_mi))
