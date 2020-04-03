@@ -50,7 +50,7 @@ class AA_MINEnet(nn.Module):
         # print(f"h2.shape={h2.shape}")
         h3 = F.relu(self.fc3(h2))
         # print(f"h3.shape={h3.shape}")
-        h4 = self.fc3(h3)        
+        h4 = self.fc4(h3)        
         return h4
 
 class MINEnet(nn.Module):
@@ -67,7 +67,7 @@ class MINEnet(nn.Module):
         h1 = F.relu(self.fc1(input_mine))
         h2 = F.relu(self.fc2(h1))
         h3 = F.relu(self.fc3(h2))
-        h4 = self.fc3(h3)        
+        h4 = self.fc4(h3)        
         return h4
 
 
