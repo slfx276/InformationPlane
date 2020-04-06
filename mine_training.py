@@ -25,8 +25,8 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of AA-MINE= {epoch}")
+#         if epoch%1000 == 0:
+#             print(f"epoch of AA-MINE= {epoch}")
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
         y_sample = add_noise(x_sample, var = noise_var)
@@ -73,8 +73,8 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of MINE= {epoch}")
+#         if epoch%1000 == 0:
+#             print(f"epoch of MINE= {epoch}")
 
         x_sample = representation_t
         y_sample = y_label
