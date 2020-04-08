@@ -21,16 +21,17 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
 
     model = AA_MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr = 0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of AA-MINE= {epoch}")
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
+        y_shuffle = np.random.permutation(x_sample)
+        
+        # 20200405 modify noise algo
         y_sample = add_noise(x_sample, var = noise_var)
-        y_shuffle = np.random.permutation(y_sample)
+        y_shuffle = add_noise(y_shuffle, var = noise_var)
 
         x_sample = Variable(torch.from_numpy(x_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
@@ -52,11 +53,11 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y, color = "b", label="AA-MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y, color = "b", label="AA-MINE")
            
         
     final_mi = np.mean(-plot_y[-35:])
@@ -69,12 +70,10 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of MINE= {epoch}")
 
         x_sample = representation_t
         y_sample = y_label
@@ -94,11 +93,11 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y,color='r', label="MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y,color='r', label="MINE")
     
     final_mi = np.mean(-plot_y[-35:])
     
@@ -108,6 +107,7 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
         plt.title(title + "_MI = " + str(final_mi))
         plt.savefig(folder + "/" + title + ".png")
+
         # plt.show()
         
     print(f"MINE MI = {final_mi}")

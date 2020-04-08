@@ -9,14 +9,14 @@ from torchvision import datasets, transforms
 import time
 
 # define MNIST classification model
-class MNIST_Net(nn.Module):
+class MLP_relu(nn.Module):
     '''
         if you change MNIST model dimension, 
         You have to adjust dimensions setting in "training.py".
         
     '''
     def __init__(self):
-        super(MNIST_Net, self).__init__()
+        super(MLP_relu, self).__init__()
         # self.fc1 = nn.Linear(784, 256)
         # self.fc2 = nn.Linear(256, 128)
         # self.fc3 = nn.Linear(128, 10)
@@ -32,44 +32,95 @@ class MNIST_Net(nn.Module):
         return t1, t2, t3
 
 
+
 class AA_MINEnet(nn.Module):
     def __init__(self, input_dim = 20):
         super(AA_MINEnet, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 1)
+        #self.fc1 = nn.Linear(input_dim, 128)
+        #self.fc2 = nn.Linear(128, 64)
+        #self.fc3 = nn.Linear(64, 64)
+        #self.fc4 = nn.Linear(64, 1)
+
+        self.fc1 = nn.Linear(input_dim, 1500)
+        self.fc2 = nn.Linear(1500, 1500)
+        self.fc3 = nn.Linear(1500, 1)
 
     def forward(self, x, t):
         # combine these two distributions
         input_mine = torch.cat((x, t),1)
-        # print(f"input_mine.shape = {input_mine.shape}")
-        h1 = F.relu(self.fc1(input_mine))
-        # print(f"h1.shape={h1.shape}")
-        h2 = F.relu(self.fc2(h1))
-        # print(f"h2.shape={h2.shape}")
-        h3 = F.relu(self.fc3(h2))
-        # print(f"h3.shape={h3.shape}")
-        h4 = self.fc4(h3)        
-        return h4
+        h1 = F.leaky_relu(self.fc1(input_mine), negative_slope = 0.001)
+        h2 = F.leaky_relu(self.fc2(h1), negative_slope = 0.001)
+        h3 = self.fc3(h2)
+        return h3
 
 class MINEnet(nn.Module):
     def __init__(self, input_dim = 20):
         super(MINEnet, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 1)
+        #self.fc1 = nn.Linear(input_dim, 128)
+        #self.fc2 = nn.Linear(128, 64)
+        #self.fc3 = nn.Linear(64, 64)
+        #self.fc4 = nn.Linear(64, 1)
+
+        self.fc1 = nn.Linear(input_dim, 1500)
+        self.fc2 = nn.Linear(1500, 1500)
+        self.fc3 = nn.Linear(1500, 1)
 
     def forward(self, x, t):
         # combine these two distributions
         input_mine = torch.cat((x, t),1)
-        h1 = F.relu(self.fc1(input_mine))
-        h2 = F.relu(self.fc2(h1))
-        h3 = F.relu(self.fc3(h2))
-        h4 = self.fc4(h3)        
-        return h4
+        h1 = F.leaky_relu(self.fc1(input_mine), negative_slope = 0.001)
+        h2 = F.leaky_relu(self.fc2(h1), negative_slope = 0.001)
+        h3 = self.fc3(h2)
+        return h3
 
+class MLP_tanh(nn.Module):
+    '''
+        if you change MNIST model dimension, 
+        You have to adjust dimensions setting in "training.py".
+        
+    '''
+    def __init__(self):
+        super(MLP_tanh, self).__init__()
+        # self.fc1 = nn.Linear(784, 256)
+        # self.fc2 = nn.Linear(256, 128)
+        # self.fc3 = nn.Linear(128, 10)
+
+        self.fc1 = nn.Linear(28*28, 500)
+        self.fc2 = nn.Linear(500, 256)
+        self.fc3 = nn.Linear(256, 10)
+    
+    def forward(self,x):
+        t1 = F.tanh(self.fc1(x))
+        t2 = F.tanh(self.fc2(t1))
+        t3 = F.softmax(self.fc3(t2)) # 下次放tanh看看
+        return t1, t2, t3
+
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 3, kernel_size=7)
+        self.conv2 = nn.Conv2d(3, 6, kernel_size=5)
+        # self.conv3 = nn.Conv2d(32,64, kernel_size=5)
+        self.fc1 = nn.Linear(9*9*6, 256)
+        self.fc2 = nn.Linear(256, 10)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        t1 = F.dropout(x, p=0.5, training=self.training)
+        # print(f"t1: {t1.shape}")
+        x = F.relu(F.max_pool2d(self.conv2(t1), 2))
+        t2 = F.dropout(x, p=0.5, training=self.training)
+        # print(f"t2: {t2.shape}")
+        
+        x = t2.view(-1,9*9*6 )
+        t3 = F.relu(self.fc1(x))
+        # print(f"t3: {t3.shape}")
+
+        x = F.dropout(t3, training=self.training)
+        t4 = self.fc2(x)
+        # print(f"t4: {t4.shape}")
+
+        return t1, t2, t3, t4
 
 if __name__ == "__main__":
     net = Net().to(device)
