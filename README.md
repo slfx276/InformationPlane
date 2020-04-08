@@ -17,6 +17,7 @@ usage: Create inputs of main.py [-h] [-bs BATCH_SIZE] [-e MNIST_EPOCH]
                                 [-amie AAMINE_EPOCH] [-bg BATCH_GROUP]
                                 [-f FOLDER_NAME] [-opt MNIST_OPT]
                                 [-lr MNIST_LR] [-re] [-show] [-cls]
+                                [-m MODEL_TYPE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -46,6 +47,9 @@ optional arguments:
   -re, --retrain        Retrain MNIST model and then store new representations
   -show, --showmine     show and save MINE training trend. (need GUI)
   -cls, --cleanfile     clean old data before creating new ones
+  -m MODEL_TYPE, --nntype MODEL_TYPE
+                        NN model type could be mlp or cnn.
+
 
 
 ```
