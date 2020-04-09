@@ -26,49 +26,63 @@ class MNIST_Net(nn.Module):
         self.fc3 = nn.Linear(256, 10)
     
     def forward(self,x):
-        t1 = F.relu(self.fc1(x))
-        t2 = F.relu(self.fc2(t1))
-        t3 = self.fc3(t2) # 下次放tanh看看
+        # t1 = F.relu(self.fc1(x))
+        # t2 = F.relu(self.fc2(t1))
+        # t3 = self.fc3(t2) 
+        # return t1, t2, t3
+
+        t1 = F.sigmoid(self.fc1(x))
+        t2 = F.sigmoid(self.fc2(t1))
+        t3 = self.fc3(t2)
         return t1, t2, t3
+
+        # while using tanh, the learning rate sould be small, ex: lr = 0.001
+        t1 = F.tanh(self.fc1(x))
+        t2 = F.tanh(self.fc2(t1))
+        t3 = self.fc3(t2)
+        return t1, t2, t3
+        
 
 
 class AA_MINEnet(nn.Module):
     def __init__(self, input_dim = 20):
         super(AA_MINEnet, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 1)
+        #self.fc1 = nn.Linear(input_dim, 128)
+        #self.fc2 = nn.Linear(128, 64)
+        #self.fc3 = nn.Linear(64, 64)
+        #self.fc4 = nn.Linear(64, 1)
+
+        self.fc1 = nn.Linear(input_dim, 1500)
+        self.fc2 = nn.Linear(1500, 1500)
+        self.fc3 = nn.Linear(1500, 1)
 
     def forward(self, x, t):
         # combine these two distributions
         input_mine = torch.cat((x, t),1)
-        # print(f"input_mine.shape = {input_mine.shape}")
-        h1 = F.relu(self.fc1(input_mine))
-        # print(f"h1.shape={h1.shape}")
-        h2 = F.relu(self.fc2(h1))
-        # print(f"h2.shape={h2.shape}")
-        h3 = F.relu(self.fc3(h2))
-        # print(f"h3.shape={h3.shape}")
-        h4 = self.fc4(h3)        
-        return h4
+        h1 = F.leaky_relu(self.fc1(input_mine), negative_slope = 0.001)
+        h2 = F.leaky_relu(self.fc2(h1), negative_slope = 0.001)
+        h3 = self.fc3(h2)
+        return h3
 
 class MINEnet(nn.Module):
     def __init__(self, input_dim = 20):
         super(MINEnet, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.fc4 = nn.Linear(64, 1)
+        #self.fc1 = nn.Linear(input_dim, 128)
+        #self.fc2 = nn.Linear(128, 64)
+        #self.fc3 = nn.Linear(64, 64)
+        #self.fc4 = nn.Linear(64, 1)
+
+        self.fc1 = nn.Linear(input_dim, 1500)
+        self.fc2 = nn.Linear(1500, 1500)
+        self.fc3 = nn.Linear(1500, 1)
 
     def forward(self, x, t):
         # combine these two distributions
         input_mine = torch.cat((x, t),1)
-        h1 = F.relu(self.fc1(input_mine))
-        h2 = F.relu(self.fc2(h1))
-        h3 = F.relu(self.fc3(h2))
-        h4 = self.fc4(h3)        
-        return h4
+        h1 = F.leaky_relu(self.fc1(input_mine), negative_slope = 0.001)
+        h2 = F.leaky_relu(self.fc2(h1), negative_slope = 0.001)
+        h3 = self.fc3(h2)
+        return h3
 
 
 if __name__ == "__main__":

@@ -120,6 +120,15 @@ if __name__ == "__main__":
         else:
             aan_epoch = args.mine_epoch
             n_epoch = args.mine_epoch
+        
+        # Adjust noise variance for different layers   2020/04/04
+        if layer_idx == 1:
+            noise_var = 1
+        elif layer_idx == 2:
+            noise_var = 2.5
+        else:
+            noise_var = args.noise_var
+
 
         # for layer representations of each epoch
         for epoch in range(mnist_epochs):
@@ -130,7 +139,7 @@ if __name__ == "__main__":
 
                 plt.cla() # clear privious plot
                 plt.close("all")
-                
+                # calculate AA-MINE Mutual Information
                 print("===================================\n")
                 time_stamp = time.time()
                 print(f"AA-MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}")
@@ -141,12 +150,11 @@ if __name__ == "__main__":
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                     exit(0)
-                # except RuntimeError:
-                #     print(f"== RuntimeError == input_dim = {split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2}")
-                #     exit(0)
+
                 print(f"elapsed time:{time.time()-time_stamp}\n")
 
                 time_stamp = time.time()
+                # calculate MINE Mutual Information
                 print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}/{label_y[epoch][:len(split_all_repre[layer_idx][epoch][bg_idx])].shape}")
                 try:
                     # if not the last batch group

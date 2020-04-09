@@ -17,7 +17,7 @@ def add_noise(x, var = 0.2):
     return x + np.random.normal(0., np.sqrt(var), [x.shape[0], x.shape[1]])
 
 # define function for calculating MI by AA-MINE
-def mi_aamine(representation_t, input_dim = 20, noise_var = 0.05, n_epoch = 120,
+def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
 
     model = AA_MINEnet(input_dim).cuda()
@@ -25,8 +25,6 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.05, n_epoch = 120,
     plot_loss = []
 
     for epoch in range(n_epoch):
-#         if epoch%1000 == 0:
-#             print(f"epoch of AA-MINE= {epoch}")
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
         y_sample = add_noise(x_sample, var = noise_var)
@@ -65,7 +63,7 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.05, n_epoch = 120,
     return final_mi
 
 # define function for calculating MI by AA-MINE
-def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.05, n_epoch = 120,
+def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 120,
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
@@ -73,8 +71,6 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.05, n_epoch =
     plot_loss = []
 
     for epoch in range(n_epoch):
-#         if epoch%1000 == 0:
-#             print(f"epoch of MINE= {epoch}")
 
         x_sample = representation_t
         y_sample = y_label
@@ -103,8 +99,7 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.05, n_epoch =
     final_mi = np.mean(-plot_y[-35:])
     
     if SHOW:
-        if not os.path.exists(folder):
-            os.mkdir(folder)
+
         plt.legend(loc='upper right')
         title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
         plt.title(title + "_MI = " + str(final_mi))

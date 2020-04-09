@@ -57,19 +57,19 @@ def get_parser():
     parser = argparse.ArgumentParser('Create inputs of main.py')
 
 
-    parser.add_argument("-bs", "--batchsize", type=int, default = 4096, dest = "batch_size", 
+    parser.add_argument("-bs", "--batchsize", type=int, default = 1024, dest = "batch_size", 
                             help="set training batch size of MNIST model")
 
     parser.add_argument("-e", "--mnistepoch", type=int, default=10, dest = "mnist_epoch",
                             help="set training epochs of MNIST model")
 
-    parser.add_argument("-var", "--noisevariance", type=float, default=0.05, dest = "noise_var",
+    parser.add_argument("-var", "--noisevariance", type=float, default=0.2, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
-    parser.add_argument("-mie", "--mineepoch", type=int, default=200, dest = "mine_epoch",
+    parser.add_argument("-mie", "--mineepoch", type=int, default=130, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-amie", "--amineepoch", type=int, default=200, dest = "aamine_epoch",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=150, dest = "aamine_epoch",
                             help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
@@ -82,7 +82,7 @@ def get_parser():
     parser.add_argument("-opt", "--optimizer", type=str, default="sgd", dest="mnist_opt", 
                             help="the optimizer used to train MNIST model.")
                 
-    parser.add_argument("-lr", "--lr", type=float, default = 0.01, dest = "mnist_lr", 
+    parser.add_argument("-lr", "--lr", type=float, default = 0.001, dest = "mnist_lr", 
                             help="initial learning rate used to train MNIST model.")
     
     parser.add_argument("-re", "--retrain", action="store_true", dest="retrain", 
