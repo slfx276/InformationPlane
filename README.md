@@ -56,7 +56,7 @@ optional arguments:
 
 ### Usage Example
 ```
-python main.py -cls -re -show -bs 1024 -bg 59 -e 10 -mie 200 -amie 200 -opt adam -var 0.03 -lr 0.01 -f bs1024bg59e10mie200amie200adamvar003lr001
+python main.py -cls -re -show -m cnn -bs 1024 -bg 59 -e 10 -mie 200 -amie 200 -opt adam -var 0.03 -lr 0.01 -f bs1024bg59e10mie200amie200adamvar003lr001
 ```
 Then figures of MINE training process would be saved in folder "bs1024bg59e10mie200amie200adamvar003lr001".  
 and information plane would be saved in current path.
