@@ -17,11 +17,11 @@ def add_noise(x, var = 0.2):
     return x + np.random.normal(0., np.sqrt(var), [x.shape[0], x.shape[1]])
 
 # define function for calculating MI by AA-MINE
-def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
+def mi_aamine(representation_t, input_dim = 20, noise_var = 0.05, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
 
     model = AA_MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr = 0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
     plot_loss = []
 
     for epoch in range(n_epoch):
@@ -65,11 +65,11 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
     return final_mi
 
 # define function for calculating MI by AA-MINE
-def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 120,
+def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.05, n_epoch = 120,
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     plot_loss = []
 
     for epoch in range(n_epoch):
