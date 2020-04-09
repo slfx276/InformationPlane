@@ -44,7 +44,7 @@ def find_value(twoDimList, v_type="min"):
         except:
             return 12
 
-def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = None):
+def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = "mine"):
     fig, axs = plt.subplots(1, 1, sharex=True, sharey=True)
     fig.suptitle(title)
     axs.set_xlim(find_value(mi_x, v_type="min"), find_value(mi_x, v_type="max") + 0.2)
@@ -62,10 +62,12 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = None):
         cbar = fig.colorbar(line, ax=axs)
         cbar.set_label(f"l{layer_idx}") ###############
     # fig.colorbar(line, ax=axs)
-    if save == None:
-        plt.savefig(title + ".png")
+    if save != "mine":
+        plt.savefig(title + "_" + save + ".png")
+        print(f"save image: {title + "_" + save + ".png"}")
     else:
-        plt.savefig(save + ".png")
+        plt.savefig(title + ".png")
+        print(f"save image: {title + ".png"}")
     plt.show()
 
 
