@@ -64,8 +64,12 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = "mine"
     # fig.colorbar(line, ax=axs)
     if save != "mine":
         plt.savefig(title + "_" + save + ".png")
+        print(f"save image: {title + "_" + save + ".png"}")
+
     else:
         plt.savefig(title + ".png")
+        print(f"save image: {title + ".png"}")
+
     plt.show()
 
 
