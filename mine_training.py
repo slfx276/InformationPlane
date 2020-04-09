@@ -27,8 +27,11 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
     for epoch in range(n_epoch):
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
+        y_shuffle = np.random.permutation(x_sample)
+        
+        # 20200405 modify noise algo
         y_sample = add_noise(x_sample, var = noise_var)
-        y_shuffle = np.random.permutation(y_sample)
+        y_shuffle = add_noise(y_shuffle, var = noise_var)
 
         x_sample = Variable(torch.from_numpy(x_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
@@ -67,7 +70,7 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     plot_loss = []
 
     for epoch in range(n_epoch):
@@ -104,10 +107,82 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
         plt.title(title + "_MI = " + str(final_mi))
         plt.savefig(folder + "/" + title + ".png")
+
         # plt.show()
         
     print(f"MINE MI = {final_mi}")
     return final_mi
+
+# still under testing
+def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, noise_var = 0.5, n_epoch = 120, layer_idx = -1 ,
+         epoch_idx = -1, batch_idx = -1, SHOW=True, AAMINE = True,  folder="mine"):
+    '''
+        == still testing ==
+        this function could calculate either AA-MINE  or MINE,
+        allow not pass in representations. (read files automatically)
+    '''
+    if READ == True:
+        # read representations
+        repre_file = "repre/layer" + str(layer_idx) + "epoch" + str(epoch_idx) + ".pkl"
+        with open(repre_file, "rb") as f:
+            repre_t, repre_y = pickle.load(f)
+        # set input dimenstions
+        if AAMINE == True:
+            input_dim = repre_t.shape[1]*2
+        else:
+            input_dim = repre_t.shape[1] + repre_y.shape[1]
+
+    model = AA_MINEnet(input_dim).cuda()
+    optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
+    plot_loss = []
+
+    for epoch in range(n_epoch):
+
+        x_sample = repre_t # because AA-MINE needs to concate sub-network before MINE
+        y_shuffle = np.random.permutation(x_sample)
+        
+        # 20200405 modify noise algo
+        if AAMINE == True:
+            y_sample = add_noise(x_sample, var = noise_var)
+            y_shuffle = add_noise(y_shuffle, var = noise_var)
+        else:
+            y_sample = repre_y
+
+        x_sample = Variable(torch.from_numpy(x_sample).type(torch.FloatTensor), requires_grad = True).cuda()
+        y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
+        y_shuffle = Variable(torch.from_numpy(y_shuffle).type(torch.FloatTensor), requires_grad = True).cuda()
+
+        pred_xy = model(x_sample, y_sample)
+        pred_x_y = model(x_sample, y_shuffle)
+
+        ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y)))
+        loss = - ret  # maximize
+        plot_loss.append(loss.cpu().data.numpy())
+        model.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    final_mi = np.mean(-plot_y[-35:])
+
+    if AAMINE and SHOW:
+        plt.plot(-plot_y, color = "b", label="AA-MINE")
+        print(f"noise variance = {noise_var}, AA-MINE MI = {final_mi}")
+        
+    elif not AAMINE and SHOW:
+        plt.plot(-plot_y,color='r', label="MINE")
+        plt.legend(loc='upper right')
+        title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
+        plt.title(title + "_MI = " + str(final_mi))
+        plt.savefig(folder + "/" + title + ".png")
+
+        print(f"MINE MI = {final_mi}")
+    
+    return final_mi
+        
+
 
 if __name__ == "__main__":
     with open("all_repre.pkl", "rb") as f:

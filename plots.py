@@ -34,11 +34,17 @@ def plot_figures(x, y, axs, cmap_idx = 0):
 
 def find_value(twoDimList, v_type="min"):
     if v_type == "min":
-        return min([min(layer_mi) for layer_mi in twoDimList ])
+        try:
+            return min([min(layer_mi) for layer_mi in twoDimList ])
+        except:
+            return 0
     elif v_type == "max":
-        return max([max(layer_mi) for layer_mi in twoDimList ])
+        try:
+            return max([max(layer_mi) for layer_mi in twoDimList ])
+        except:
+            return 12
 
-def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
+def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = None):
     fig, axs = plt.subplots(1, 1, sharex=True, sharey=True)
     fig.suptitle(title)
     axs.set_xlim(find_value(mi_x, v_type="min"), find_value(mi_x, v_type="max") + 0.2)
@@ -56,7 +62,10 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
         cbar = fig.colorbar(line, ax=axs)
         cbar.set_label(f"l{layer_idx}") ###############
     # fig.colorbar(line, ax=axs)
-    plt.savefig(title + ".png")
+    if save == None:
+        plt.savefig(title + ".png")
+    else:
+        plt.savefig(save + ".png")
     plt.show()
 
 

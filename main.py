@@ -30,51 +30,12 @@ from plots import plot_information_plane
 from utils import get_parser, Create_Logger
 
 
-if __name__ == "__main__":
-    args = get_parser()
-    logger = Create_Logger(__name__)
+logger = Create_Logger(__name__)
 
-    # arguments passing
-    mnist_epochs = args.mnist_epoch
-    batch_size = args.batch_size
-    retrain = args.retrain
-    batch_group = args.batch_group
-    opt = args.mnist_opt
-    lr = args.mnist_lr
-
-    show = args.show
-    noise_var = args.noise_var
-    n_epoch = args.mine_epoch
-    aan_epoch = args.aamine_epoch
-    folder_name = args.folder_name
-
-    if args.clean_old_files:
-        if os.path.exists(folder_name):
-            shutil.rmtree(folder_name, ignore_errors=True)
-            print(f"del directory : {folder_name}")
-        if show:
-            os.mkdir(folder_name)
-
-
-    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
-    logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}")
-    logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
-    logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
-
-    # train MNIST model
-    mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
-                        mnist_epochs = mnist_epochs, Retrain = args.retrain,
-                         lr = lr, opt = opt)
-
-    acc = mnist_testing(mnist_net, batch_size)
-    
-    # load MNIST model hyper-parameters config
-    with open("mnist_net_config.pkl","rb") as f:
-        _, mnist_epochs, num_layers, _ = pickle.load(f)
-
-# ------------------------------------------------------------
-
-
+def splitBatchGroup(all_repre, batch_size, batch_group):
+    '''
+    This Function need to be modify because we don't put all representation in the same file while using CNN
+    '''
     logger.info(f"seperate batches in the same training epoch in order to calculate MI more individully. ")
     split_all_repre = []
     samples_size = batch_size * batch_group 
@@ -83,6 +44,7 @@ if __name__ == "__main__":
         split_all_repre.append([])
 
         for e_idx in range(mnist_epochs):
+            
             split_all_repre[l_idx].append([])
 
             for batch_idx in range((60000 // samples_size) + 1):
@@ -101,16 +63,105 @@ if __name__ == "__main__":
                     except:
                         print(l_idx, e_idx, samples_size*(batch_idx + 1))
                         exit(0)
-                        
     
-    # print(len(split_all_repre[l_idx][e_idx]),len(split_all_repre[l_idx][e_idx][0]))
+    return split_all_repre 
+
+
+if __name__ == "__main__":
+    args = get_parser()
+
+    # arguments passing
+    mnist_epochs = args.mnist_epoch
+    batch_size = args.batch_size
+    retrain = args.retrain
+    batch_group = args.batch_group
+    opt = args.mnist_opt
+    lr = args.mnist_lr
+
+    show = args.show
+    noise_var = args.noise_var
+    n_epoch = args.mine_epoch
+    aan_epoch = args.aamine_epoch
+    folder_name = args.folder_name
+    model = args.model_type
+
+    if args.clean_old_files:
+        if os.path.exists(folder_name):
+            shutil.rmtree(folder_name, ignore_errors=True)
+            print(f"del directory : {folder_name}")
+        if show:
+            os.mkdir(folder_name)
+    if not os.path.exists("repre"):
+        os.mkdir("repre")
+    else:
+        shutil.rmtree("repre", ignore_errors=True)
+        os.mkdir("repre")
+
+
+    logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
+    logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}, model type = {model}")
+    logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
+    logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
+
+    # train MNIST model
+    mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
+                        mnist_epochs = mnist_epochs, Retrain = args.retrain,
+                         lr = lr, opt = opt, model = model)
+
+    acc = mnist_testing(mnist_net, batch_size, model = model)
+    
+
+    # load MNIST model hyper-parameters config
+    with open("mnist_net_config.pkl","rb") as f:
+        _, mnist_epochs, num_layers, _ = pickle.load(f)
+
+    # the name of saved image (information plane)
+    ip_title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
+            + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
+            "_amie" + str(aan_epoch) + "_type" + model
+
+    # for layer_idx in range(num_layers):
+    #     ip_title = ip_title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
+# ------------------------------------------------------------
+
+
+    # logger.info(f"seperate batches in the same training epoch in order to calculate MI more individully. ")
+    # split_all_repre = []
+    # samples_size = batch_size * batch_group 
+
+    # for l_idx in range(num_layers):
+    #     split_all_repre.append([])
+
+    #     for e_idx in range(mnist_epochs):
+            
+    #         split_all_repre[l_idx].append([])
+
+    #         for batch_idx in range((60000 // samples_size) + 1):
+
+    #             if batch_idx == (60000 // samples_size):
+    #                 try:
+    #                     split_all_repre[l_idx][e_idx].append(all_repre[l_idx][e_idx][samples_size*batch_idx:, ])
+    #                 except: # May occur IndexError or something
+    #                     logger.error("last iteration of seperating batch group.", l_idx, e_idx, batch_idx)
+    #                     logger.error("Errors may caused by mnist training epochs setting mismatch.")
+    #                     exit(0)
+
+    #             else:
+    #                 try:
+    #                     split_all_repre[l_idx][e_idx].append(all_repre[l_idx][e_idx][samples_size * batch_idx:samples_size*(batch_idx + 1), ])
+    #                 except:
+    #                     print(l_idx, e_idx, samples_size*(batch_idx + 1))
+    #                     exit(0)
+                        
+# ------------------------------------------------------------
+    
     del all_repre
     
     all_mi_label = [[] for i in range(num_layers)]
     all_mi_input = [[] for i in range(num_layers)]
     time1 = time.time()
 
-    # use AA-MINE for estimating Information Bottleneck
+    # use AA-MINE and MINE for estimating Information Bottleneck
     for layer_idx in range(num_layers):
         
         # To get better convergence value, we need to adjus MINE model training epochs for different layers
@@ -120,87 +171,77 @@ if __name__ == "__main__":
         else:
             aan_epoch = args.mine_epoch
             n_epoch = args.mine_epoch
-        
+
         # Adjust noise variance for different layers   2020/04/04
         if layer_idx == 1:
-            noise_var = 0.2
-        elif layer_idx == 2:
             noise_var = 1
+        elif layer_idx == 2:
+            noise_var = 2.5
         else:
             noise_var = args.noise_var
 
-
         # for layer representations of each epoch
         for epoch in range(mnist_epochs):
-            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch.")
+            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch")
 
             # for different batch groups of the same epoch
-            for bg_idx in range(len(split_all_repre[l_idx][e_idx])):
+            # for bg_idx in range(len(split_all_repre[l_idx][e_idx])):
 
-                plt.cla() # clear privious plot
-                plt.close("all")
-                # calculate AA-MINE Mutual Information
-                print("===================================\n")
-                time_stamp = time.time()
-                print(f"AA-MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}")
-                try:
-                    all_mi_input[layer_idx].append(mi_aamine(split_all_repre[layer_idx][epoch][bg_idx], 
-                            input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2, noise_var = noise_var, 
-                            SHOW=show, n_epoch = aan_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx))
-                except IndexError:
-                    print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
-                    exit(0)
+            repre_file = "repre/layer" + str(layer_idx) + "epoch" + str(epoch) + ".pkl"
+            with open(repre_file, "rb") as f:
+                split_all_repre, label_y = pickle.load(f)
 
-                print(f"elapsed time:{time.time()-time_stamp}\n")
+            plt.cla() # clear privious plot
+            plt.close("all")
+            
+            print("===================================\n")
+            time_stamp = time.time()
+            print(f"AA-MINE -> {layer_idx}-th layer ,{epoch}-th epoch,  \n shape = {split_all_repre.shape}")
+            try:
+                all_mi_input[layer_idx].append(mi_aamine(split_all_repre, 
+                        input_dim = split_all_repre.shape[1]*2, noise_var = noise_var, 
+                        SHOW=show, n_epoch = aan_epoch, layer_idx = layer_idx, epoch_idx = epoch))
+            except IndexError:
+                print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
+                exit(0)
+            # except RuntimeError:
+            #     print(f"== RuntimeError == input_dim = {split_all_repre.shape[1]*2}")
+            #     exit(0)
+            print(f"elapsed time:{time.time()-time_stamp}\n")
 
-                time_stamp = time.time()
-                # calculate MINE Mutual Information
-                print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}/{label_y[epoch][:len(split_all_repre[layer_idx][epoch][bg_idx])].shape}")
-                try:
-                    # if not the last batch group
-                    if bg_idx != len(split_all_repre[l_idx][e_idx]) - 1: 
-                        all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx:samples_size * (bg_idx + 1)],
-                                input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
-                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx, 
-                                folder = folder_name))
-                    # deal with the last batch group, which is not full samples size
-                    else:
-                        all_mi_label[layer_idx].append(mi_mine(split_all_repre[layer_idx][epoch][bg_idx], label_y[epoch][samples_size * bg_idx: ],
-                                input_dim = split_all_repre[layer_idx][epoch][bg_idx].shape[1] + label_y[epoch].shape[1],
-                                SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx, 
-                                folder = folder_name))
-                except IndexError:
-                    print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
+            time_stamp = time.time()
+            print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch,  \n shape = {split_all_repre.shape}/{label_y.shape}")
+            try:
+                all_mi_label[layer_idx].append(mi_mine(split_all_repre, label_y,
+                        input_dim = split_all_repre.shape[1] + label_y.shape[1],
+                        SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, folder = folder_name))
+
+            except IndexError:
+                logger.error(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
+            
+
+            # for Debugging : prevent MINE loss from being NaN
+            if math.isnan(all_mi_input[layer_idx][-1]):
+                logger.error(f"AAMINE Mutual Inforamtion is NaN!!!")
+                exit(0)
+            if math.isnan(all_mi_label[layer_idx][-1]):
+                logger.error(f"Mutual information is NaN!!!")
+                print(split_all_repre)
+                print(label_y)
+                print(all_mi_label[layer_idx][-1])
+                exit(0)
+
+            print(f"elapsed time:{time.time()-time_stamp}\n")
                 
+        # we Plot a information plane after MI of each layer is completed    
+        plt.cla() # clear privious plot
+        plt.close("all")
 
-                # for Debugging : prevent MINE loss from being NaN
-                if math.isnan(all_mi_input[layer_idx][-1]):
-                    logger.error(f"AAMINE Mutual Inforamtion is NaN!!!")
-                    exit(0)
-                if math.isnan(all_mi_label[layer_idx][-1]):
-                    logger.error(f"Mutual information is NaN!!!")
-                    print(split_all_repre[layer_idx][epoch][bg_idx])
-                    print(label_y[epoch][samples_size * bg_idx:samples_size * (bg_idx + 1)])
-                    print(all_mi_label[layer_idx][-1])
-                    exit(0)
+        logger.info(f"image ip_title = {ip_title}\n")
+        plot_information_plane(all_mi_input, all_mi_label, num_layers, title = ip_title, save = folder_name)
 
-                print(f"elapsed time:{time.time()-time_stamp}\n")
-                
-    plt.cla() # clear privious plot
-    plt.close("all")
-
-    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
-        + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
-        "_amie" + str(aan_epoch) 
-
-    for layer_idx in range(num_layers):
-        title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
-
-    logger.info(f"image title = {title}\n")
     logger.info(f"MNIST accuracy = {acc}")
     logger.info(f"Total elapsed time = {time.time()-time1}")
-
-    plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
 #    print(all_mi_input, all_mi_label)
 
