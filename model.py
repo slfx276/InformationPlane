@@ -26,21 +26,21 @@ class MNIST_Net(nn.Module):
         self.fc3 = nn.Linear(256, 10)
     
     def forward(self,x):
-        # t1 = F.relu(self.fc1(x))
-        # t2 = F.relu(self.fc2(t1))
-        # t3 = self.fc3(t2) 
+        t1 = F.relu(self.fc1(x))
+        t2 = F.relu(self.fc2(t1))
+        t3 = self.fc3(t2) 
+        return t1, t2, t3
+
+        # t1 = F.sigmoid(self.fc1(x))
+        # t2 = F.sigmoid(self.fc2(t1))
+        # t3 = self.fc3(t2)
         # return t1, t2, t3
 
-        t1 = F.sigmoid(self.fc1(x))
-        t2 = F.sigmoid(self.fc2(t1))
-        t3 = self.fc3(t2)
-        return t1, t2, t3
-
         # while using tanh, the learning rate sould be small, ex: lr = 0.001
-        t1 = F.tanh(self.fc1(x))
-        t2 = F.tanh(self.fc2(t1))
-        t3 = self.fc3(t2)
-        return t1, t2, t3
+        # t1 = F.tanh(self.fc1(x))
+        # t2 = F.tanh(self.fc2(t1))
+        # t3 = self.fc3(t2)
+        # return t1, t2, t3
         
 
 

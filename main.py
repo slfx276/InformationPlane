@@ -72,6 +72,9 @@ if __name__ == "__main__":
     with open("mnist_net_config.pkl","rb") as f:
         _, mnist_epochs, num_layers, _ = pickle.load(f)
 
+    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
+    + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
+    "_amie" + str(aan_epoch) 
 # ------------------------------------------------------------
 
 
@@ -185,22 +188,17 @@ if __name__ == "__main__":
                     exit(0)
 
                 print(f"elapsed time:{time.time()-time_stamp}\n")
-                
-    plt.cla() # clear privious plot
-    plt.close("all")
+        
+        # we Plot a information plane after MI of each layer is completed  
+        plt.cla() # clear privious plot
+        plt.close("all")
 
-    title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
-        + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
-        "_amie" + str(aan_epoch) 
+        logger.info(f"image title = {title}\n")
+        plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title, save = folder_name)
 
-    for layer_idx in range(num_layers):
-        title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
-
-    logger.info(f"image title = {title}\n")
     logger.info(f"MNIST accuracy = {acc}")
     logger.info(f"Total elapsed time = {time.time()-time1}")
 
-    plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
 #    print(all_mi_input, all_mi_label)
 
