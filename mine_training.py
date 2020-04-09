@@ -27,11 +27,8 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
     for epoch in range(n_epoch):
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
-        y_shuffle = np.random.permutation(x_sample)
-        
-        # 20200405 modify noise algo
         y_sample = add_noise(x_sample, var = noise_var)
-        y_shuffle = add_noise(y_shuffle, var = noise_var)
+        y_shuffle = np.random.permutation(y_sample)
 
         x_sample = Variable(torch.from_numpy(x_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
@@ -70,7 +67,7 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     plot_loss = []
 
     for epoch in range(n_epoch):
@@ -107,7 +104,6 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         title = f"MINE_layer{layer_idx}_epoch{epoch_idx}_bgroup{batch_idx}"
         plt.title(title + "_MI = " + str(final_mi))
         plt.savefig(folder + "/" + title + ".png")
-
         # plt.show()
         
     print(f"MINE MI = {final_mi}")

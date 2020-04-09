@@ -47,7 +47,6 @@ if __name__ == "__main__":
     n_epoch = args.mine_epoch
     aan_epoch = args.aamine_epoch
     folder_name = args.folder_name
-    model = args.model_type
 
     if args.clean_old_files:
         if os.path.exists(folder_name):
@@ -55,27 +54,20 @@ if __name__ == "__main__":
             print(f"del directory : {folder_name}")
         if show:
             os.mkdir(folder_name)
-    if not os.path.exists("repre"):
-        os.mkdir("repre")
-    else:
-        shutil.rmtree("repre", ignore_errors=True)
-        os.mkdir("repre")
 
 
     logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
-    logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}, model type = {model}")
+    logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}")
     logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
     logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
     # train MNIST model
     mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
                         mnist_epochs = mnist_epochs, Retrain = args.retrain,
-                         lr = lr, opt = opt, model = model)
+                         lr = lr, opt = opt)
 
-    acc = mnist_testing(mnist_net, batch_size, model = model)
+    acc = mnist_testing(mnist_net, batch_size)
     
-
-    exit(0)
     # load MNIST model hyper-parameters config
     with open("mnist_net_config.pkl","rb") as f:
         _, mnist_epochs, num_layers, _ = pickle.load(f)
@@ -91,7 +83,6 @@ if __name__ == "__main__":
         split_all_repre.append([])
 
         for e_idx in range(mnist_epochs):
-            
             split_all_repre[l_idx].append([])
 
             for batch_idx in range((60000 // samples_size) + 1):
@@ -129,25 +120,26 @@ if __name__ == "__main__":
         else:
             aan_epoch = args.mine_epoch
             n_epoch = args.mine_epoch
-
+        
         # Adjust noise variance for different layers   2020/04/04
         if layer_idx == 1:
-            noise_var = 1
+            noise_var = 0.2
         elif layer_idx == 2:
-            noise_var = 2.5
+            noise_var = 1
         else:
             noise_var = args.noise_var
 
+
         # for layer representations of each epoch
         for epoch in range(mnist_epochs):
-            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch")
+            logger.info(f"== MI == {layer_idx}-th layer, {epoch}-th epoch.")
 
             # for different batch groups of the same epoch
             for bg_idx in range(len(split_all_repre[l_idx][e_idx])):
 
                 plt.cla() # clear privious plot
                 plt.close("all")
-                
+                # calculate AA-MINE Mutual Information
                 print("===================================\n")
                 time_stamp = time.time()
                 print(f"AA-MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}")
@@ -158,12 +150,11 @@ if __name__ == "__main__":
                 except IndexError:
                     print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                     exit(0)
-                # except RuntimeError:
-                #     print(f"== RuntimeError == input_dim = {split_all_repre[layer_idx][epoch][bg_idx].shape[1]*2}")
-                #     exit(0)
+
                 print(f"elapsed time:{time.time()-time_stamp}\n")
 
                 time_stamp = time.time()
+                # calculate MINE Mutual Information
                 print(f"MINE -> {layer_idx}-th layer ,{epoch}-th epoch, {bg_idx}-th batch group. \n shape = {split_all_repre[layer_idx][epoch][bg_idx].shape}/{label_y[epoch][:len(split_all_repre[layer_idx][epoch][bg_idx])].shape}")
                 try:
                     # if not the last batch group
@@ -179,7 +170,7 @@ if __name__ == "__main__":
                                 SHOW=show, n_epoch = n_epoch, layer_idx = layer_idx, epoch_idx = epoch, batch_idx = bg_idx, 
                                 folder = folder_name))
                 except IndexError:
-                    logger.error(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
+                    print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                 
 
                 # for Debugging : prevent MINE loss from being NaN
@@ -200,7 +191,7 @@ if __name__ == "__main__":
 
     title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
         + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
-        "_amie" + str(aan_epoch) + "_type" + model
+        "_amie" + str(aan_epoch) 
 
     for layer_idx in range(num_layers):
         title = title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
@@ -209,7 +200,7 @@ if __name__ == "__main__":
     logger.info(f"MNIST accuracy = {acc}")
     logger.info(f"Total elapsed time = {time.time()-time1}")
 
-    plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title, save = folder_name)
+    plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title)
 
 #    print(all_mi_input, all_mi_label)
 

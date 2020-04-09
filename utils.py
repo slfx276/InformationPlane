@@ -10,6 +10,7 @@ import time
 import logging
 import sys
 import argparse
+from model import MNIST_Net
 
 def training_device():
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -78,7 +79,7 @@ def get_parser():
     parser.add_argument("-f", "--folder", type=str, default="mine", dest="folder_name", 
                             help="the name of folder which you create for saving MINE training trend.")
 
-    parser.add_argument("-opt", "--optimizer", type=str, default="adam", dest="mnist_opt", 
+    parser.add_argument("-opt", "--optimizer", type=str, default="sgd", dest="mnist_opt", 
                             help="the optimizer used to train MNIST model.")
                 
     parser.add_argument("-lr", "--lr", type=float, default = 0.001, dest = "mnist_lr", 
@@ -92,9 +93,5 @@ def get_parser():
                             
     parser.add_argument("-cls", "--cleanfile",  action="store_true", dest="clean_old_files", 
                             help="clean old data before creating new ones")
-    
-    parser.add_argument("-m", "--nntype", type=str, default="mlprelu", dest="model_type", 
-                            help="NN model type could be mlp or cnn.")
-
 
     return parser.parse_args()

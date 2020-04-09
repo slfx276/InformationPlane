@@ -10,59 +10,49 @@ import time
 import os
 import pickle
 
-from model import MLP_relu, MLP_tanh, CNN
+from model import MNIST_Net
 import utils
 
 
 
 logger = utils.Create_Logger(__name__)
 
-def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, 
-                                        opt = "adam", model = "mlp"):
+def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, opt = "sgd"):
     time1 = time.time()
 
-    device = utils.training_device()
-    conv_idx = list()
-    if model == "mlptanh":
-        mnist_net = MLP_tanh().to(device)
-        dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
-    elif model == "mlprelu":
-        mnist_net = MLP_relu().to(device)
-        dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
-    elif model == "cnn":
-        mnist_net = CNN().to(device)
-        conv_idx = [0, 1] # which layer is convolutional layer
-        dimensions = [3*22*22, 6*9*9, 256, 10]
-        
+
     # create storage container of hidden layer representations 
-    
+    dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
     num_layers = len(dimensions)
 
     label_y = [np.empty(shape=[0, 10]) for i in range(mnist_epochs)]
 
-    # all_repre = []
-    # for layer_idx in range(num_layers):
-    #     all_repre.append([])
-    #     for epoch in range(mnist_epochs):
-    #         all_repre[layer_idx].append(np.empty(shape = [0, dimensions[layer_idx]]))
+    all_repre = []
+    for layer_idx in range(num_layers):
+        all_repre.append([])
+        for epoch in range(mnist_epochs):
+            all_repre[layer_idx].append(np.empty(shape = [0, dimensions[layer_idx]]))
 
     # save training model config
     with open("mnist_net_config.pkl","wb") as f:
         pickle.dump((batch_size, mnist_epochs, num_layers, dimensions), f)
 
+
+
     # load privious representation record
-    if Retrain == False and os.path.exists("repre/mnist_net.pkl"):
+    if Retrain == False and os.path.exists("mnist_net.pkl"):
         print("Loading MNIST model...")
-        mnist_net = torch.load("repre/mnist_net.pkl")
-        with open("repre/all_representation.pkl", "rb") as f:
+        mnist_net = torch.load("mnist_net.pkl")
+        with open("all_representation.pkl", "rb") as f:
             load_all_repre, load_label_y = pickle.load(f)
 
         return mnist_net, load_all_repre, load_label_y
 
 
+    device = utils.training_device()
     logger.info(f"Training Device : {device}")
     trainLoader, testLoader = utils.dataLoader(batch_size = batch_size)
-
+    mnist_net = MNIST_Net().to(device)
 
     # Loss and Optimizer
     criterion = nn.CrossEntropyLoss()
@@ -72,15 +62,9 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
     elif opt == "adam":
         optimizer = torch.optim.Adam(mnist_net.parameters(), lr = lr)
 
-    logger.info(mnist_net)
-
     # Training
     for epoch in range(mnist_epochs):
-
-        all_repre = []
-        for layer_idx in range(num_layers):
-            all_repre.append(np.empty(shape = [0, dimensions[layer_idx]]))
-
+        
         running_loss = 0
         
         for i, data in enumerate(trainLoader, 0):
@@ -88,34 +72,18 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
             inputs, labels = data[0].to(device), data[1].to(device)
             
             # 使用 view() 將 inputs 的維度壓到符合模型的輸入。
-            if model != "cnn":
-                inputs = inputs.view(inputs.shape[0], -1) 
+            inputs = inputs.view(inputs.shape[0], -1) 
         
             # 梯度清空
             optimizer.zero_grad()
 
             # Forward 
-            repre = list(mnist_net(inputs))
-            # logger.debug(f"repre dimensions : {len(repre)}, {len(repre[0])}, {len(repre[0][0])}, {len(repre[0][0][0])}")
-
-
-            # t1, t2, outputs = mnist_net(inputs)
-            predict = None
+            t1, t2, outputs = mnist_net(inputs)
+            
             # layer transformation
-            for idx in range(len(repre)):
-
-                if idx == len(repre)-1: # the last representation
-                    predict = repre[idx]
-
-                if idx in conv_idx and model == "cnn": # this layer is convolutional layer
-                    repre[idx] = repre[idx].view(-1, len(repre[idx][0])*len(repre[idx][0][0])*len(repre[idx][0][0][0]))
-                    repre[idx] = repre[idx].cpu().detach().numpy()
-                    continue
-
-                repre[idx] = repre[idx].cpu().detach().numpy()
-            # t1, t2, outputs_np = t1.cpu().detach().numpy(), t2.cpu().detach().numpy(), \
-            #                                         outputs.cpu().detach().numpy()
-
+            t1, t2, outputs_np = t1.cpu().detach().numpy(), t2.cpu().detach().numpy(), \
+                                                    outputs.cpu().detach().numpy()
+            inputs_np = inputs.cpu().detach().numpy()
             labels_np = labels.cpu().detach().numpy()
             
             # transform label to one-hot encoding and save it.
@@ -124,17 +92,12 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
             
 
             # store all representations to additional list
-            # for layer_idx in range(num_layers):
-            #     all_repre[layer_idx][epoch] = np.concatenate((all_repre[layer_idx][epoch], repre[layer_idx]), axis = 0)
-            for layer_idx in range(num_layers):
-                all_repre[layer_idx] = np.concatenate((all_repre[layer_idx], repre[layer_idx]), axis = 0)
-                    
-            # all_repre[0][epoch] = np.concatenate((all_repre[0][epoch], t1), axis = 0)
-            # all_repre[1][epoch] = np.concatenate((all_repre[1][epoch], t2), axis = 0)
-            # all_repre[2][epoch] = np.concatenate((all_repre[2][epoch], outputs_np), axis = 0)
+            all_repre[0][epoch] = np.concatenate((all_repre[0][epoch], t1), axis = 0)
+            all_repre[1][epoch] = np.concatenate((all_repre[1][epoch], t2), axis = 0)
+            all_repre[2][epoch] = np.concatenate((all_repre[2][epoch], outputs_np), axis = 0)
 
             # backward
-            loss = criterion(predict, labels)
+            loss = criterion(outputs, labels)
             loss.backward()
             
             # 更新參數
@@ -146,27 +109,17 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
                 print('[%d/%d, %d/%d] loss: %.3f' % (epoch+1, mnist_epochs, i+1
                                         , len(trainLoader), running_loss/2000))
                 running_loss = 0.0 
-
-        if Retrain == True:
-            if not os.path.exists("mnist_net.pkl"):
-                torch.save(mnist_net, "repre/mnist_net.pkl")
-            for layer_idx in range(num_layers):
-                repre_file = "repre/layer" + str(layer_idx) + "epoch" + str(epoch) + ".pkl"
-                with open(repre_file, "wb") as f:
-                    pickle.dump((all_repre[layer_idx], label_y[epoch]), f, protocol=4)
-
-
-        logger.info(f"Training epoch {epoch}, elapsed time: {time.time()-time1}")
-        mnist_testing(mnist_net, batch_size, model = model)
         
-    # if Retrain == True or not os.path.exists("mnist_net.pkl"):
-    #     torch.save(mnist_net, "training_result/mnist_net.pkl")
-    #     with open("training_result/all_representation.pkl", "wb") as f:
-    #         pickle.dump((all_repre, label_y), f, protocol=4)
+        logger.info(f"Finishe Training, elapsed time: {time.time()-time1}")
+        
+    if Retrain == True or not os.path.exists("mnist_net.pkl"):
+        torch.save(mnist_net, "mnist_net.pkl")
+        with open("all_representation.pkl", "wb") as f:
+            pickle.dump((all_repre, label_y), f)
     
     return mnist_net, all_repre, label_y
 
-def mnist_testing(mnist_net, batch_size, model="mlprelu"):
+def mnist_testing(mnist_net, batch_size):
     # Test
     correct = 0
     total = 0
@@ -175,11 +128,10 @@ def mnist_testing(mnist_net, batch_size, model="mlprelu"):
     with torch.no_grad():
         for data in testLoader:
             inputs, labels = data[0].to(device), data[1].to(device)
-            if model != "cnn": # need to change shape
-                inputs = inputs.view(inputs.shape[0], -1)
+            inputs = inputs.view(inputs.shape[0], -1)
             
             # modify if you change MNIST layers structure
-            outputs = list(mnist_net(inputs))[-1]
+            _, _, outputs = mnist_net(inputs)
             
             _, predicted = torch.max(outputs.data, 1) # 找出分數最高的對應channel，即 top-1
             total += labels.size(0)
