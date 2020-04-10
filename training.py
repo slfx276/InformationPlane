@@ -32,7 +32,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
     elif model == "cnn":
         mnist_net = CNN().to(device)
         conv_idx = [0, 1] # which layer is convolutional layer
-        dimensions = [3*22*22, 6*9*9, 256, 10]
+        dimensions = [10*24*24, 20*10*10, 256, 10]
         
     # create storage container of hidden layer representations 
     
@@ -51,13 +51,14 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
         pickle.dump((batch_size, mnist_epochs, num_layers, dimensions), f)
 
     # load privious representation record
+    # === This loading part need to be modified 20200409 ===
     if Retrain == False and os.path.exists("repre/mnist_net.pkl"):
         print("Loading MNIST model...")
         mnist_net = torch.load("repre/mnist_net.pkl")
         with open("repre/all_representation.pkl", "rb") as f:
             load_all_repre, load_label_y = pickle.load(f)
 
-        return mnist_net, load_all_repre, load_label_y
+        return mnist_net, load_all_repre, load_label_y, None
 
 
     logger.info(f"Training Device : {device}")
@@ -74,6 +75,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
 
     logger.info(mnist_net)
 
+    acc = list()
     # Training
     for epoch in range(mnist_epochs):
 
@@ -159,14 +161,16 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
 
 
         logger.info(f"Training epoch {epoch}, elapsed time: {time.time()-time1}")
-        mnist_testing(mnist_net, batch_size, model = model)
+        acc.append(mnist_testing(mnist_net, batch_size, model = model))
+    
+
         
     # if Retrain == True or not os.path.exists("mnist_net.pkl"):
     #     torch.save(mnist_net, "training_result/mnist_net.pkl")
     #     with open("training_result/all_representation.pkl", "wb") as f:
     #         pickle.dump((all_repre, label_y), f, protocol=4)
     
-    return mnist_net, all_repre, label_y
+    return mnist_net, all_repre, label_y, acc
 
 def mnist_testing(mnist_net, batch_size, model="mlprelu"):
     # Test

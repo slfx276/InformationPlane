@@ -26,7 +26,7 @@ import math
 
 from training import mnist_training, mnist_testing
 from mine_training import mi_aamine, mi_mine
-from plots import plot_information_plane
+from plots import plot_information_plane, plot_line
 from utils import get_parser, Create_Logger
 
 
@@ -103,23 +103,29 @@ if __name__ == "__main__":
     logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
     logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
-    # train MNIST model
-    mnist_net, all_repre, label_y = mnist_training(batch_size = batch_size, 
-                        mnist_epochs = mnist_epochs, Retrain = args.retrain,
-                         lr = lr, opt = opt, model = model)
-
-    acc = mnist_testing(mnist_net, batch_size, model = model)
-    
-
-    # load MNIST model hyper-parameters config
-    with open("mnist_net_config.pkl","rb") as f:
-        _, mnist_epochs, num_layers, _ = pickle.load(f)
-
     # the name of saved image (information plane)
     ip_title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
             + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
             "_amie" + str(aan_epoch) + "_type" + model
 
+    
+    # train MNIST model
+    mnist_net, all_repre, label_y, acc = mnist_training(batch_size = batch_size, 
+                        mnist_epochs = mnist_epochs, Retrain = args.retrain,
+                         lr = lr, opt = opt, model = model)
+
+    # load MNIST model hyper-parameters config
+    with open("mnist_net_config.pkl","rb") as f:
+        _, mnist_epochs, num_layers, _ = pickle.load(f)
+
+    args_dict = {"mnist_epochs":mnist_epochs, "num_layers":num_layers, "ip_title":ip_title,
+         "save":folder_name, "noise_var":noise_var, "aamine_epoch":aan_epoch, "mine_epoch":n_epoch}
+    with open("repre/args.pkl", "wb") as f:        
+        pickle.dump(args_dict, f)
+    
+    plot_line(acc, ip_title, folder_name)
+
+    logger.info(f"MNIST training Finished !!")
     # for layer_idx in range(num_layers):
     #     ip_title = ip_title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
 # ------------------------------------------------------------
@@ -177,6 +183,8 @@ if __name__ == "__main__":
             noise_var = 1
         elif layer_idx == 2:
             noise_var = 2.5
+        elif layer_idx == 3:
+            noise_var = 3.5
         else:
             noise_var = args.noise_var
 

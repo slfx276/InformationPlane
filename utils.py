@@ -18,7 +18,7 @@ def training_device():
 def dataLoader(batch_size = 256):
     # Transform
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5,),(0.5,)),])
+                                    transforms.Normalize((0.1307,), (0.3081,)),])
     #Data
     trainSet = datasets.MNIST(root='MNIST', download=True, train=True, 
                             transform=transform)
@@ -62,13 +62,13 @@ def get_parser():
     parser.add_argument("-e", "--mnistepoch", type=int, default=10, dest = "mnist_epoch",
                             help="set training epochs of MNIST model")
 
-    parser.add_argument("-var", "--noisevariance", type=float, default=0.05, dest = "noise_var",
+    parser.add_argument("-var", "--noisevariance", type=float, default=0.01, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
     parser.add_argument("-mie", "--mineepoch", type=int, default=200, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-amie", "--amineepoch", type=int, default=200, dest = "aamine_epoch",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=250, dest = "aamine_epoch",
                             help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
@@ -93,8 +93,12 @@ def get_parser():
     parser.add_argument("-cls", "--cleanfile",  action="store_true", dest="clean_old_files", 
                             help="clean old data before creating new ones")
     
+    # you should specify MNIST model type every time
     parser.add_argument("-m", "--nntype", type=str, default="mlprelu", dest="model_type", 
                             help="NN model type could be mlp or cnn.")
 
+    # only needed while excuting python mine_training.py
+    parser.add_argument("-n", "--layernum", type=int, default=3, dest = "layer_num",
+                            help="how many hidden layers in MNIST model")
 
     return parser.parse_args()
