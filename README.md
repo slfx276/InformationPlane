@@ -61,6 +61,19 @@ python main.py -cls -re -show -m cnn -bs 1024 -bg 59 -e 10 -mie 200 -amie 200 -o
 Then figures of MINE training process would be saved in folder "bs1024bg59e10mie200amie200adamvar003lr001".  
 and information plane would be saved in current path.
 
+when using main.py, you should at least enter arguments below
+```
+CUDA_VISIBLE_DEVICES=0 time python main.py -cls -re -show -m cnn
+```
+when using mine_training.py
+```
+CUDA_VISIBLE_DEVICES=0 time python mine_training.py
+```
+when using plot.py
+```
+time python plot.py
+```
+
 
 ### reference
 - [how to plot multi-colored line with matplotlib](https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/multicolored_line.html)  
