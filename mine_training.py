@@ -151,7 +151,7 @@ def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, no
             y_shuffle = np.random.permutation(x_sample)
             y_sample = add_noise(x_sample, var = noise_var)
             y_shuffle = add_noise(y_shuffle, var = noise_var)
-        else:
+        else:  
             y_sample = repre_y
             y_shuffle = np.random.permutation(y_sample)
 
@@ -160,11 +160,16 @@ def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, no
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_shuffle = Variable(torch.from_numpy(y_shuffle).type(torch.FloatTensor), requires_grad = True).cuda()
 
-        pred_xy = model(x_sample, y_sample)
-        pred_x_y = model(x_sample, y_shuffle)
+        # try to fix CUDA out of memory
+        with torch.no_grad():
+            pred_xy = model(x_sample, y_sample)
+            pred_x_y = model(x_sample, y_shuffle)
 
         ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y)))
         loss = - ret  # maximize
+        
+        # try to fix "RuntimeError: element 0 of variables does not require grad and does not have a grad_fn"
+        loss = Variable(loss, requires_grad = True)
         plot_loss.append(loss.cpu().data.numpy())
         model.zero_grad()
         loss.backward()
