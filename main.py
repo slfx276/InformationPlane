@@ -116,18 +116,18 @@ if __name__ == "__main__":
 
     # load MNIST model hyper-parameters config
     with open("mnist_net_config.pkl","rb") as f:
-        _, mnist_epochs, num_layers, _ = pickle.load(f)
+        _, mnist_epochs, num_layers, dimensions = pickle.load(f)
 
     args_dict = {"mnist_epochs":mnist_epochs, "num_layers":num_layers, "ip_title":ip_title,
          "save":folder_name, "noise_var":noise_var, "aamine_epoch":aan_epoch, "mine_epoch":n_epoch}
     with open("repre/args.pkl", "wb") as f:        
         pickle.dump(args_dict, f)
     
-    plot_line(acc, ip_title, folder_name)
+    for layer_idx in range(num_layers):
+        ip_title = ip_title + "_" + str(dimensions[layer_idx])
 
     logger.info(f"MNIST training Finished !!")
-    # for layer_idx in range(num_layers):
-    #     ip_title = ip_title + "_" + str(split_all_repre[layer_idx][0][0].shape[1])
+    plot_line(acc, ip_title, folder_name)
 # ------------------------------------------------------------
 
 
@@ -212,9 +212,6 @@ if __name__ == "__main__":
             except IndexError:
                 print(f"IndexError -> layer_iex/epoch = {layer_idx}/{epoch} ")
                 exit(0)
-            # except RuntimeError:
-            #     print(f"== RuntimeError == input_dim = {split_all_repre.shape[1]*2}")
-            #     exit(0)
             print(f"elapsed time:{time.time()-time_stamp}\n")
 
             time_stamp = time.time()

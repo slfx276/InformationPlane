@@ -32,7 +32,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
     elif model == "cnn":
         mnist_net = CNN().to(device)
         conv_idx = [0, 1] # which layer is convolutional layer
-        dimensions = [10*24*24, 20*10*10, 256, 10]
+        dimensions = [5*24*24, 10*10*10, 256, 10]
         
     # create storage container of hidden layer representations 
     
@@ -102,27 +102,23 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
 
 
             # t1, t2, outputs = mnist_net(inputs)
-            predict = None
+            predict = repre[-1]
             # layer transformation
             for idx in range(len(repre)):
-
-                if idx == len(repre)-1: # the last representation
-                    predict = repre[idx]
 
                 if idx in conv_idx and model == "cnn": # this layer is convolutional layer
                     repre[idx] = repre[idx].view(-1, len(repre[idx][0])*len(repre[idx][0][0])*len(repre[idx][0][0][0]))
                     repre[idx] = repre[idx].cpu().detach().numpy()
                     continue
-
-                repre[idx] = repre[idx].cpu().detach().numpy()
+                else:
+                    repre[idx] = repre[idx].cpu().detach().numpy()
             # t1, t2, outputs_np = t1.cpu().detach().numpy(), t2.cpu().detach().numpy(), \
             #                                         outputs.cpu().detach().numpy()
 
             labels_np = labels.cpu().detach().numpy()
             
             # transform label to one-hot encoding and save it.
-            label_y[epoch] = np.concatenate((label_y[epoch], np.eye(10)[labels_np]),
-                                            axis = 0)
+            label_y[epoch] = np.concatenate((label_y[epoch], np.eye(10)[labels_np]), axis = 0)
             
 
             # store all representations to additional list
@@ -158,6 +154,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
                 repre_file = "repre/layer" + str(layer_idx) + "epoch" + str(epoch) + ".pkl"
                 with open(repre_file, "wb") as f:
                     pickle.dump((all_repre[layer_idx], label_y[epoch]), f, protocol=4)
+                    print(f"layer-{layer_idx}, epoch-{epoch}, all_repre shape: {all_repre[layer_idx].shape}/label shape: {label_y[epoch].shape}")
 
 
         logger.info(f"Training epoch {epoch}, elapsed time: {time.time()-time1}")

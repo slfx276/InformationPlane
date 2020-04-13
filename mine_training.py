@@ -16,6 +16,25 @@ from utils import get_parser, Create_Logger
 def add_noise(x, var = 0.2):
     return x + np.random.normal(0., np.sqrt(var), [x.shape[0], x.shape[1]])
 
+# ============================================
+# def add_noise(X , scale = 0.5):
+    
+#     def add_noise_individually(row, scale = scale):
+#         print("row = ",row)
+#         noise = np.random.normal(np.mean(row), scale * np.var(row), len(row))
+#         print(np.mean(row), np.var(row))
+#         return row + noise
+    
+#     X_T = np.apply_along_axis(add_noise_individually, 1, X.transpose())
+#     X = X_T.transpose()
+#     return X
+
+# a = np.array([[1, 4, 47],[2, 5, 50]])
+# print("a = \n",a)
+# print(add_noise(a))
+# ============================================
+
+
 # define function for calculating MI by AA-MINE
 def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
@@ -114,25 +133,26 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
     return final_mi
 
 # still under testing
-def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, noise_var = 0.5, n_epoch = 200,
-                layer_idx = -1, epoch_idx = -1, batch_idx = -1, SHOW=True, AAMINE = True, folder="mine"):
+def calculate_MI(repre_t = None, label_y = None, READ = True, input_dim = 20, noise_var = 0.5, n_epoch = 200,
+                layer_idx = -1, epoch_idx = -1, batch_idx = -1, SHOW=True, AAMINE, folder="mine"):
     '''
         == still testing ==
         this function could calculate either AA-MINE  or MINE,
         allow not pass in representations. (read files automatically)
     '''
     if READ == True:
+
         # read representations
         repre_file = "repre/layer" + str(layer_idx) + "epoch" + str(epoch_idx) + ".pkl"
         print(f"Reading representation {repre_file}")
-
         with open(repre_file, "rb") as f:
-            repre_t, repre_y = pickle.load(f)
+            repre_t, label_y = pickle.load(f)
+
         # set input dimenstions
         if AAMINE == True:
             input_dim = repre_t.shape[1]*2
         else:
-            input_dim = repre_t.shape[1] + repre_y.shape[1]
+            input_dim = repre_t.shape[1] + label_y.shape[1]
 
     if AAMINE == True:
         model = AA_MINEnet(input_dim).cuda()
@@ -152,7 +172,7 @@ def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, no
             y_sample = add_noise(x_sample, var = noise_var)
             y_shuffle = add_noise(y_shuffle, var = noise_var)
         else:  
-            y_sample = repre_y
+            y_sample = label_y
             y_shuffle = np.random.permutation(y_sample)
 
 
@@ -161,15 +181,15 @@ def calculate_MI(repre_t = None, repre_y = None, READ = True, input_dim = 20, no
         y_shuffle = Variable(torch.from_numpy(y_shuffle).type(torch.FloatTensor), requires_grad = True).cuda()
 
         # try to fix CUDA out of memory
-        with torch.no_grad():
-            pred_xy = model(x_sample, y_sample)
-            pred_x_y = model(x_sample, y_shuffle)
+        # with torch.no_grad():
+        pred_xy = model(x_sample, y_sample)
+        pred_x_y = model(x_sample, y_shuffle)
 
         ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y)))
         loss = - ret  # maximize
         
         # try to fix "RuntimeError: element 0 of variables does not require grad and does not have a grad_fn"
-        loss = Variable(loss, requires_grad = True)
+        # loss = Variable(loss, requires_grad = True)
         plot_loss.append(loss.cpu().data.numpy())
         model.zero_grad()
         loss.backward()
@@ -223,6 +243,14 @@ if __name__ == "__main__":
                 with open(mi_flag, "wb") as f:
                     pickle.dump((layer_idx, epoch), f, protocol=4)
 
+                # To get better convergence value, we need to adjus MINE model training epochs for different layers
+                if layer_idx < 1:
+                    aamine_epoch = args["aamine_epoch"] + 100
+                    mine_epoch = args["mine_epoch"] + 20
+                else:
+                    aamine_epoch = args["aamine_epoch"]
+                    mine_epoch = args["mine_epoch"]
+
                 # set noise variance
                 if layer_idx == 1:
                     noise_var = 1
@@ -232,7 +260,11 @@ if __name__ == "__main__":
                     noise_var = 3.5
                 else:
                     noise_var = args["noise_var"]
+                    
 
+                plt.cla() # clear privious plot
+                plt.close("all")    
+                
                 # AA-MINE
                 time_stamp = time.time()
                 print("=================================")

@@ -98,10 +98,10 @@ class MLP_tanh(nn.Module):
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv1 = nn.Conv2d(1, 5, kernel_size=5)
+        self.conv2 = nn.Conv2d(5, 10, kernel_size=5)
         # self.conv3 = nn.Conv2d(32,64, kernel_size=5)
-        self.fc1 = nn.Linear(10*10*20, 256)
+        self.fc1 = nn.Linear(10*10*10, 256)
         self.fc2 = nn.Linear(256, 10)
 
     def forward(self, x):
@@ -112,7 +112,7 @@ class CNN(nn.Module):
         t2 = F.dropout(x, p=0.5, training=self.training)
         # print(f"t2: {t2.shape}")
         
-        x = t2.view(-1,10*10*20 )
+        x = t2.view(-1,10*10*10 )
         t3 = F.relu(self.fc1(x))
         # print(f"t3: {t3.shape}")
 
