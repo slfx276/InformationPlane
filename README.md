@@ -47,16 +47,30 @@ optional arguments:
   -show, --showmine     show and save MINE training trend. (need GUI)
   -cls, --cleanfile     clean old data before creating new ones
 
-
 ```
 
 ### Usage Example
 ```
-python main.py -cls -re -show -bs 1024 -bg 59 -e 10 -mie 200 -amie 200 -opt adam -var 0.03 -lr 0.01 -f bs1024bg59e10mie200amie200adamvar003lr001
+CUDA_VISIBLE_DEVICES=[GPU number] time python main.py -cls -re -show -f ParallelSplitRepre3
 ```
-Then figures of MINE training process would be saved in folder "bs1024bg59e10mie200amie200adamvar003lr001".  
-and information plane would be saved in current path.
+Then figures of AA-MINE & MINE training process would be saved in folder "ParallelSplitRepre3".   
+and information plane would be saved in current path.   
+All representations would be saved in directory "repre" until the next excution.
 
+if you want to speed up calculating, you can use 
+```
+CUDA_VISIBLE_DEVICES=[Other GPUs] python main.py     # Do not use arguments especially -re & -cls.
+```
+Finally, use plots.py to gather all MI value and visualize on information plane.
+```
+python plots.py
+```
+
+(Optional)  
+You could use utils.py to check the rate of progress on calculating MI.  
+```
+python utils.py
+```
 
 ### reference
 - [how to plot multi-colored line with matplotlib](https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/multicolored_line.html)  
