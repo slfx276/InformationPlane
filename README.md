@@ -65,7 +65,10 @@ Finally, use plots.py to gather all MI value and visualize on information plane.
 ```
 python plots.py
 ```
-
+  
+  
+![image](https://github.com/slfx276/InformationPlane/blob/master/ip_bs4096_e10_var0.01_bg59_adam_lr0.001_mie250_amie250_500_256_10__ParallelSplitRepre3.png)  
+  
 (Optional)  
 You could use utils.py to check the rate of progress on calculating MI.  
 ```
