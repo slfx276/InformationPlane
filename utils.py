@@ -11,6 +11,8 @@ import logging
 import sys
 import argparse
 from model import MNIST_Net
+import pickle
+import os
 
 def training_device():
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -57,19 +59,19 @@ def get_parser():
     parser = argparse.ArgumentParser('Create inputs of main.py')
 
 
-    parser.add_argument("-bs", "--batchsize", type=int, default = 1024, dest = "batch_size", 
+    parser.add_argument("-bs", "--batchsize", type=int, default = 4096, dest = "batch_size", 
                             help="set training batch size of MNIST model")
 
     parser.add_argument("-e", "--mnistepoch", type=int, default=10, dest = "mnist_epoch",
                             help="set training epochs of MNIST model")
 
-    parser.add_argument("-var", "--noisevariance", type=float, default=0.2, dest = "noise_var",
+    parser.add_argument("-var", "--noisevariance", type=float, default=0.01, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
-    parser.add_argument("-mie", "--mineepoch", type=int, default=130, dest = "mine_epoch",
+    parser.add_argument("-mie", "--mineepoch", type=int, default=250, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-amie", "--amineepoch", type=int, default=150, dest = "aamine_epoch",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=250, dest = "aamine_epoch",
                             help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
@@ -79,7 +81,7 @@ def get_parser():
     parser.add_argument("-f", "--folder", type=str, default="mine", dest="folder_name", 
                             help="the name of folder which you create for saving MINE training trend.")
 
-    parser.add_argument("-opt", "--optimizer", type=str, default="sgd", dest="mnist_opt", 
+    parser.add_argument("-opt", "--optimizer", type=str, default="adam", dest="mnist_opt", 
                             help="the optimizer used to train MNIST model.")
                 
     parser.add_argument("-lr", "--lr", type=float, default = 0.001, dest = "mnist_lr", 
@@ -95,3 +97,22 @@ def get_parser():
                             help="clean old data before creating new ones")
 
     return parser.parse_args()
+
+
+def check_MI():
+    with open("repre/arguments.pkl", "rb") as f:
+        args, title, num_batchGroups, samples_size, dimensions = pickle.load(f)
+    num_layers = len(dimensions)
+    for layer_idx in range(num_layers):
+        for epoch in range(args.mnist_epoch):
+            for bg_idx in range(num_batchGroups):
+                done_mi_file = args.folder_name + "/mi_layer" + str(layer_idx) + "epoch" + str(epoch) + "bg" + str(bg_idx) +"_done" + ".pkl"
+                if os.path.exists(done_mi_file):
+                    with open(done_mi_file, "rb") as f:
+                        x, y = pickle.load(f)
+                        print(f"layer-{layer_idx}, epoch-{epoch} , batchGroup-{bg_idx}-> I(T;X) = {x}, I(T;Y) = {y}")
+
+
+
+if __name__ == "__main__":
+    check_MI()

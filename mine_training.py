@@ -21,12 +21,12 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
 
     model = AA_MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr = 0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
+    # optimizer = torch.optim.SGD(model.parameters(), lr = 0.001, momentum = 0.001)
+    
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of AA-MINE= {epoch}")
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
         y_sample = add_noise(x_sample, var = noise_var)
@@ -52,11 +52,11 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y, color = "b", label="AA-MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y, color = "b", label="AA-MINE")
            
         
     final_mi = np.mean(-plot_y[-35:])
@@ -69,12 +69,10 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
                  SHOW = True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1, folder="mine"):
 
     model = MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     plot_loss = []
 
     for epoch in range(n_epoch):
-        if epoch%1000 == 0:
-            print(f"epoch of MINE= {epoch}")
 
         x_sample = representation_t
         y_sample = y_label
@@ -94,11 +92,11 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
         loss.backward()
         optimizer.step()
         
-        # plot image of MI trend
-        plot_x = np.arange(len(plot_loss))
-        plot_y = np.array(plot_loss).reshape(-1,)
-        if SHOW:
-            plt.plot(-plot_y,color='r', label="MINE")
+    # plot image of MI trend
+    plot_x = np.arange(len(plot_loss))
+    plot_y = np.array(plot_loss).reshape(-1,)
+    if SHOW:
+        plt.plot(-plot_y,color='r', label="MINE")
     
     final_mi = np.mean(-plot_y[-35:])
     

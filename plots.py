@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.colors import LinearSegmentedColormap
-
-
+import pickle
+import os
 
 cmap = ["viridis", "plasma", "cividis", "magma", "inferno"]
 
@@ -34,11 +34,18 @@ def plot_figures(x, y, axs, cmap_idx = 0):
 
 def find_value(twoDimList, v_type="min"):
     if v_type == "min":
-        return min([min(layer_mi) for layer_mi in twoDimList ])
+        try:
+            return min([min(layer_mi) for layer_mi in twoDimList ])
+        except:
+            return 0
     elif v_type == "max":
-        return max([max(layer_mi) for layer_mi in twoDimList ])
+        try:
+            return max([max(layer_mi) for layer_mi in twoDimList ])
+        except:
+            return 2
 
-def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
+def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = "mine"):
+
     fig, axs = plt.subplots(1, 1, sharex=True, sharey=True)
     fig.suptitle(title)
     axs.set_xlim(find_value(mi_x, v_type="min"), find_value(mi_x, v_type="max") + 0.2)
@@ -56,14 +63,60 @@ def plot_information_plane(mi_x, mi_y, total_layers, title = "ip"):
         cbar = fig.colorbar(line, ax=axs)
         cbar.set_label(f"l{layer_idx}") ###############
     # fig.colorbar(line, ax=axs)
-    plt.savefig(title + ".png")
+    if save != "mine":
+        plt.savefig(title + "_" + save + ".png")
+        print(f"save information plane image: {title}_{save}.png")
+    else:
+        plt.savefig(title + ".png")
+        print(f"save information plane image: {title}.png")
     plt.show()
 
 
-if __name__ == "__main__":
-    mi_x = [[1, 2, 5, 6],[7, 5, 8,11], [4, 5, 6, 7], [1, 3, 5, 7]]
-    mi_y = [[i for i in range(4)] for j in range(len(mi_x))]
-    layer_num = len(mi_x)
-    plot_information_plane(mi_x, mi_y, layer_num)
+def plot_line(value_list, title = "", save = ""):
+    plt.cla() # clear privious plot
+    plt.close("all")
+    plt.plot(value_list)
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.title(title + save)
+    plt.savefig("acc_" + title + "_" + save + ".png")
+    print(f"save image: acc_{title}_{save}.png")
 
+
+def combine_mi():
+    '''
+    read the MI files saved in folder "repre"
+    which are calculated by excuting "python mine_training.py ...." (parallel)
+    then plot the information plane.
+    '''
+    with open("repre/arguments.pkl", "rb") as f:
+        args, title, num_batchGroups, sample_size, dimensions = pickle.load(f)
+
+    num_layers = len(dimensions)
+    mnist_epochs = args.mnist_epoch
+    ip_title = title
+    folder_name = args.folder_name
+
+    mi_tx = [[] for i in range(num_layers)]
+    mi_ty = [[] for i in range(num_layers)]
+    # read all MI files
+    for layer_idx in range(num_layers):
+        for epoch in range(mnist_epochs):
+            for bg_idx in range(num_batchGroups):
+                
+                done_mi_file = folder_name + "/mi_layer" + str(layer_idx) + "epoch" + str(epoch) + "bg" + str(bg_idx) +"_done" + ".pkl"
+                if os.path.exists(done_mi_file):
+                    with open(done_mi_file, "rb") as f:
+                        x, y = pickle.load(f)
+                    print(f"layer-{layer_idx}, epoch-{epoch} -> x = {x}, y = {y}")
+                    mi_tx[layer_idx].append(x)
+                    mi_ty[layer_idx].append(y)
+
+    print(mi_tx, mi_ty)
+    plot_information_plane(mi_tx, mi_ty, num_layers, title = ip_title, save = folder_name)
+    
+
+
+if __name__ == "__main__":
+    combine_mi()
 

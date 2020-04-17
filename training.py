@@ -46,7 +46,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, opt = 
         with open("all_representation.pkl", "rb") as f:
             load_all_repre, load_label_y = pickle.load(f)
 
-        return mnist_net, load_all_repre, load_label_y
+        return mnist_net, load_all_repre, load_label_y, dimensions
 
 
     device = utils.training_device()
@@ -58,7 +58,7 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, opt = 
     criterion = nn.CrossEntropyLoss()
 
     if opt == "sgd":
-        optimizer = torch.optim.SGD(mnist_net.parameters(), lr = lr, momentum = 0.9)
+        optimizer = torch.optim.SGD(mnist_net.parameters(), lr = lr, momentum = 0.01)
     elif opt == "adam":
         optimizer = torch.optim.Adam(mnist_net.parameters(), lr = lr)
 
@@ -111,13 +111,15 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001, opt = 
                 running_loss = 0.0 
         
         logger.info(f"Finishe Training, elapsed time: {time.time()-time1}")
+        mnist_testing(mnist_net, batch_size)
+    
         
     if Retrain == True or not os.path.exists("mnist_net.pkl"):
         torch.save(mnist_net, "mnist_net.pkl")
         with open("all_representation.pkl", "wb") as f:
             pickle.dump((all_repre, label_y), f)
     
-    return mnist_net, all_repre, label_y
+    return mnist_net, all_repre, label_y, dimensions
 
 def mnist_testing(mnist_net, batch_size):
     # Test
