@@ -10,6 +10,8 @@ import time
 import logging
 import sys
 import argparse
+import pickle
+import os
 
 def training_device():
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -18,16 +20,16 @@ def training_device():
 def dataLoader(batch_size = 256):
     # Transform
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.1307,), (0.3081,)),])
+                                    transforms.Normalize((0.5,),(0.5,)),])
     #Data
     trainSet = datasets.MNIST(root='MNIST', download=True, train=True, 
                             transform=transform)
     testSet = datasets.MNIST(root='MNIST', download=True, train=False,
                             transform=transform)
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=batch_size,
-                                            shuffle=True)
+                                            shuffle=True, num_workers=4)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=batch_size,
-                                            shuffle=False)
+                                            shuffle=False, num_workers=4)
 
     return trainLoader, testLoader
 
@@ -62,13 +64,13 @@ def get_parser():
     parser.add_argument("-e", "--mnistepoch", type=int, default=10, dest = "mnist_epoch",
                             help="set training epochs of MNIST model")
 
-    parser.add_argument("-var", "--noisevariance", type=float, default=0.01, dest = "noise_var",
+    parser.add_argument("-var", "--noisevariance", type=float, default=2, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
-    parser.add_argument("-mie", "--mineepoch", type=int, default=200, dest = "mine_epoch",
+    parser.add_argument("-mie", "--mineepoch", type=int, default=300, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-amie", "--amineepoch", type=int, default=250, dest = "aamine_epoch",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=1500, dest = "aamine_epoch",
                             help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
@@ -92,13 +94,28 @@ def get_parser():
                             
     parser.add_argument("-cls", "--cleanfile",  action="store_true", dest="clean_old_files", 
                             help="clean old data before creating new ones")
-    
+
     # you should specify MNIST model type every time
     parser.add_argument("-m", "--nntype", type=str, default="mlprelu", dest="model_type", 
                             help="NN model type could be mlp or cnn.")
 
-    # only needed while excuting python mine_training.py
-    parser.add_argument("-n", "--layernum", type=int, default=3, dest = "layer_num",
-                            help="how many hidden layers in MNIST model")
-
     return parser.parse_args()
+
+
+def check_MI():
+    with open("repre/arguments.pkl", "rb") as f:
+        args, title, num_batchGroups, samples_size, dimensions = pickle.load(f)
+    num_layers = len(dimensions)
+    for layer_idx in range(num_layers):
+        for epoch in range(args.mnist_epoch):
+            for bg_idx in range(num_batchGroups):
+                done_mi_file = args.folder_name + "/mi_layer" + str(layer_idx) + "epoch" + str(epoch) + "bg" + str(bg_idx) +"_done" + ".pkl"
+                if os.path.exists(done_mi_file):
+                    with open(done_mi_file, "rb") as f:
+                        x, y = pickle.load(f)
+                        print(f"layer-{layer_idx}, epoch-{epoch} , batchGroup-{bg_idx}-> I(T;X) = {x}, I(T;Y) = {y}")
+
+
+
+if __name__ == "__main__":
+    check_MI()

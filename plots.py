@@ -4,7 +4,7 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.colors import LinearSegmentedColormap
 import pickle
-
+import os
 
 cmap = ["viridis", "plasma", "cividis", "magma", "inferno"]
 
@@ -42,7 +42,7 @@ def find_value(twoDimList, v_type="min"):
         try:
             return max([max(layer_mi) for layer_mi in twoDimList ])
         except:
-            return 12
+            return 2
 
 def plot_information_plane(mi_x, mi_y, total_layers, title = "ip", save = "mine"):
 
@@ -89,26 +89,31 @@ def combine_mi():
     which are calculated by excuting "python mine_training.py ...." (parallel)
     then plot the information plane.
     '''
-    with open("repre/args.pkl", "rb") as f:
-        args = pickle.load(f)
+    with open("repre/arguments.pkl", "rb") as f:
+        args, title, num_batchGroups, sample_size, dimensions = pickle.load(f)
 
-    num_layers = args["num_layers"]
-    mnist_epochs = args["mnist_epochs"]
-    ip_title = args["ip_title"]
-    save = args["save"]
+    num_layers = len(dimensions)
+    mnist_epochs = args.mnist_epoch
+    ip_title = title
+    folder_name = args.folder_name
 
     mi_tx = [[] for i in range(num_layers)]
     mi_ty = [[] for i in range(num_layers)]
     # read all MI files
     for layer_idx in range(num_layers):
         for epoch in range(mnist_epochs):
-            done_mi_file = "repre/mi_layer" + str(layer_idx) + "epoch" + str(epoch) + "_done" + ".pkl"
-            with open(done_mi_file, "rb") as f:
-                x, y = pickle.load(f)
-                mi_tx[layer_idx].append(x)
-                mi_ty[layer_idx].append(y)
+            for bg_idx in range(num_batchGroups):
+                
+                done_mi_file = folder_name + "/mi_layer" + str(layer_idx) + "epoch" + str(epoch) + "bg" + str(bg_idx) +"_done" + ".pkl"
+                if os.path.exists(done_mi_file):
+                    with open(done_mi_file, "rb") as f:
+                        x, y = pickle.load(f)
+                    print(f"layer-{layer_idx}, epoch-{epoch} -> x = {x}, y = {y}")
+                    mi_tx[layer_idx].append(x)
+                    mi_ty[layer_idx].append(y)
 
-    plot_information_plane(mi_tx, mi_ty, num_layers, title = ip_title, save = save)
+    print(mi_tx, mi_ty)
+    plot_information_plane(mi_tx, mi_ty, num_layers, title = ip_title, save = folder_name)
     
 
 
