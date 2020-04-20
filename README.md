@@ -65,14 +65,20 @@ when using main.py, you should at least enter arguments below
 ```
 CUDA_VISIBLE_DEVICES=0 time python main.py -cls -re -show -m cnn
 ```
-when using mine_training.py
+when using other GPU to assist
 ```
-CUDA_VISIBLE_DEVICES=0 time python mine_training.py
+CUDA_VISIBLE_DEVICES=0 time python main.py
 ```
 when using plot.py
 ```
-time python plot.py
+python plot.py
 ```
+use utils.py to check current MI calculation result
+```
+python utils.py
+```
+![image](https://github.com/slfx276/InformationPlane/blob/includeCNN/ip_bs4096_e10_var2.0_bg59_adam_lr0.001_mie250_amie1400_typemlptanh500_256_10__testtanh_NOISE2_2_005.png)
+
 
 
 ### reference
