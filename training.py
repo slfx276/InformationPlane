@@ -30,10 +30,16 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
     elif model_type == "mlprelu":
         mnist_net = model.MLP_relu().to(device)
         dimensions = [500, 256, 10] # You have to adjust this if you change MNIST model dimension
+    elif model_type == "mlpsigmoid":
+        mnist_net = model.MLP_sigmoid().to(device)
+        dimensions = [500, 256, 10]
     elif model_type == "cnn":
         mnist_net = model.CNN().to(device)
         conv_idx = [0, 1] # which layer is convolutional layer
         dimensions = [10*24*24, 20*10*10, 256, 10]
+    else:
+        print("model type error!")
+        exit(0)
         
     # create storage container of hidden layer representations 
     num_layers = len(dimensions)
@@ -51,13 +57,13 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
         pickle.dump((batch_size, mnist_epochs, num_layers, dimensions), f)
 
     # load privious representation record
-    if Retrain == False and os.path.exists("mnist_net.pkl"):
-        print("Loading MNIST model...")
-        mnist_net = torch.load("mnist_net.pkl")
-        with open("all_representation.pkl", "rb") as f:
-            load_all_repre, load_label_y = pickle.load(f)
+    # if Retrain == False and os.path.exists("mnist_net.pkl"):
+    #     print("Loading MNIST model...")
+    #     mnist_net = torch.load("mnist_net.pkl")
+    #     with open("all_representation.pkl", "rb") as f:
+    #         load_all_repre, load_label_y = pickle.load(f)
 
-        return mnist_net, load_all_repre, load_label_y, dimensions, None
+    #     return mnist_net, load_all_repre, load_label_y, dimensions, None
 
 
     logger.info(f"Training Device : {device}")
@@ -129,10 +135,14 @@ def mnist_training(batch_size, mnist_epochs, Retrain = False, lr = 0.001,
         logger.info(f"MNIST Training, epoch-{epoch} elapsed time: {time.time()-time1}")
         acc.append(mnist_testing(mnist_net, batch_size, model_type = model_type))
         
-    if Retrain == True or not os.path.exists("mnist_net.pkl"):
-        torch.save(mnist_net, "mnist_net.pkl")
-        with open("all_representation.pkl", "wb") as f:
-            pickle.dump((all_repre, label_y), f)
+        if not os.path.exists("modelCheckPoint"):
+            os.mkdir("modelCheckPoint")
+
+        model_name = f"modelCheckPoint/{model_type}_{opt}_{epoch}.pkl"
+        if Retrain == True or not os.path.exists(model_name):
+            torch.save(mnist_net, model_name)
+            # with open("all_representation.pkl", "wb") as f:
+            #     pickle.dump((all_repre, label_y), f)
     
     return mnist_net, all_repre, label_y, dimensions, acc
 

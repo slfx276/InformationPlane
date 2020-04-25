@@ -51,6 +51,24 @@ class MLP_tanh(nn.Module):
         t3 = F.softmax(self.fc3(t2)) # 下次放tanh看看
         return t1, t2, t3
 
+class MLP_sigmoid(nn.Module):
+    '''
+        if you change MNIST model dimension, 
+        You have to adjust dimensions setting in "training.py".
+        
+    '''
+    def __init__(self):
+        super(MLP_sigmoid, self).__init__()
+
+        self.fc1 = nn.Linear(28*28, 500)
+        self.fc2 = nn.Linear(500, 256)
+        self.fc3 = nn.Linear(256, 10)
+    
+    def forward(self,x):
+        t1 = F.sigmoid(self.fc1(x))
+        t2 = F.sigmoid(self.fc2(t1))
+        t3 = F.softmax(self.fc3(t2))
+        return t1, t2, t3
 
 class CNN(nn.Module):
     def __init__(self):
