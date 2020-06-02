@@ -6,7 +6,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import pickle
 import os
 
-cmap = ["viridis", "plasma", "cividis", "magma", "inferno"]
+#cmap = ["viridis", "plasma", "cividis", "magma", "inferno"]
+cmap = ["viridis", "plasma", "coolwarm"]
 
 def plot_figures(x, y, axs, cmap_idx = 0):
     '''
@@ -111,6 +112,20 @@ def combine_mi():
                     print(f"layer-{layer_idx}, epoch-{epoch} -> x = {x}, y = {y}")
                     mi_tx[layer_idx].append(x)
                     mi_ty[layer_idx].append(y)
+
+    # # ======= before or after activation function =======
+    # mi_x = list()
+    # mi_y = list()
+    # for i in range(len(mi_tx)):
+    #     if i % 2 == 1:
+    #         mi_x.append(mi_tx[i])
+    #         mi_y.append(mi_ty[i])
+
+    # print("mi_x: ", mi_x, "\nmi_y:", mi_y)
+    # print(len(mi_tx), len(mi_x))
+    # plot_information_plane(mi_x, mi_y, 3, title = ip_title, save = folder_name + "_withoutActivation")
+
+    # # ====================================================
 
     print(mi_tx, mi_ty)
     plot_information_plane(mi_tx, mi_ty, num_layers, title = ip_title, save = folder_name)

@@ -26,7 +26,7 @@ import math
 
 from training import mnist_training, mnist_testing
 from mine_training import mi_aamine, mi_mine
-from plots import plot_information_plane
+from plots import plot_information_plane, plot_line
 from utils import get_parser, Create_Logger
 
 
@@ -47,6 +47,7 @@ if __name__ == "__main__":
     n_epoch = args.mine_epoch
     aan_epoch = args.aamine_epoch
     folder_name = args.folder_name
+    model_type = args.model_type
 
     if retrain == True:
 
@@ -66,17 +67,16 @@ if __name__ == "__main__":
 
 
         logger.info(f"args1: mnist_epochs={mnist_epochs}, batch_size={batch_size}, retrain={retrain}")
-        logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}")
+        logger.info(f"args2: mnist_lr = {lr}, MNIST optimizer = {opt}, MNIST model_type={model_type}")
         logger.info(f"args3: clean old files = {args.clean_old_files}, folder name = {folder_name}, batch group={batch_group}")
         logger.info(f"args4: show={show}, noise_var={noise_var}, n_epoch={n_epoch}, aamine_epoch={aan_epoch}")
 
         # train MNIST model
-        mnist_net, all_repre, label_y, dimensions = mnist_training(batch_size = batch_size, 
+        mnist_net, all_repre, label_y, dimensions, acc = mnist_training(batch_size = batch_size, 
                             mnist_epochs = mnist_epochs, Retrain = args.retrain,
-                            lr = lr, opt = opt)
+                            lr = lr, opt = opt, model_type = model_type)
 
-        acc = mnist_testing(mnist_net, batch_size)
-        
+
         # load MNIST model hyper-parameters config
         with open("mnist_net_config.pkl","rb") as f:
             _, mnist_epochs, num_layers, _ = pickle.load(f)
@@ -85,9 +85,13 @@ if __name__ == "__main__":
 
         title = "ip_bs" + str(batch_size) + "_e" + str(mnist_epochs) + "_var" + str(noise_var) \
         + "_bg" + str(batch_group) + "_" + opt + "_lr" + str(lr) + "_mie" + str(n_epoch) + \
-        "_amie" + str(aan_epoch) + "_"
+        "_amie" + str(aan_epoch) + "_type" + model_type
         for dimension in dimensions:
             title = title + str(dimension) + "_"
+
+        plot_line(acc, title, folder_name)
+
+        
     # ------------------------------------------------------------
 
         # seperate batches into batch group
@@ -129,7 +133,7 @@ if __name__ == "__main__":
             pickle.dump((args, title, len(split_all_repre[0][0]), samples_size, dimensions), f)
 
         del all_repre
-    
+        
 
     with open("repre/label_y.pkl", "rb") as f:
         label_y = pickle.load(f)
@@ -157,20 +161,20 @@ if __name__ == "__main__":
 
     # use AA-MINE for estimating Information Bottleneck
     for layer_idx in range(num_layers):
+        # if layer_idx % 2 == 0:
+        #     continue
         
         # To get better convergence value, we need to adjus MINE model training epochs for different layers
         if layer_idx < 1:
-            aan_epoch = args.mine_epoch + 100
+            aan_epoch = args.aamine_epoch + 100
             n_epoch = args.mine_epoch + 100
         else:
-            aan_epoch = args.mine_epoch
+            aan_epoch = args.aamine_epoch
             n_epoch = args.mine_epoch
         
         # Adjust noise variance for different layers   2020/04/04
-        if layer_idx == 1:
-            noise_var = 1
-        elif layer_idx == 2:
-            noise_var = 2.5
+        if layer_idx == num_layers - 1 : # 0.05, if the last layer is softmax
+            noise_var = 0.05
         else:
             noise_var = args.noise_var
 
@@ -260,7 +264,7 @@ if __name__ == "__main__":
         plt.close("all")
 
         logger.info(f"image title = {title}\n")
-        plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title, save = folder_name)
+        #plot_information_plane(all_mi_input, all_mi_label, num_layers, title = title, save = folder_name)
 
     # logger.info(f"MNIST accuracy = {acc}")
     logger.info(f"Total elapsed time = {time.time()-time1}")

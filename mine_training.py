@@ -3,7 +3,6 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
-# import holoviews as hv
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
 import time
@@ -21,7 +20,7 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
                  SHOW=True, layer_idx = -1 , epoch_idx = -1, batch_idx = -1):
 
     model = AA_MINEnet(input_dim).cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr = 0.00001)
     # optimizer = torch.optim.SGD(model.parameters(), lr = 0.001, momentum = 0.001)
     
     plot_loss = []
@@ -30,7 +29,9 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
 
         x_sample = representation_t # because AA-MINE needs to concate sub-network before MINE
         y_sample = add_noise(x_sample, var = noise_var)
+        t1 = time.time()
         y_shuffle = np.random.permutation(y_sample)
+        print(f"shuffle elapsed time : {time.time()-t1}")
 
         x_sample = Variable(torch.from_numpy(x_sample).type(torch.FloatTensor), requires_grad = True).cuda()
         y_sample = Variable(torch.from_numpy(y_sample).type(torch.FloatTensor), requires_grad = True).cuda()
@@ -59,7 +60,8 @@ def mi_aamine(representation_t, input_dim = 20, noise_var = 0.5, n_epoch = 120,
         plt.plot(-plot_y, color = "b", label="AA-MINE")
            
         
-    final_mi = np.mean(-plot_y[-35:])
+    # final_mi = np.mean(-plot_y[-35:])
+    final_mi = np.mean(-plot_y[-50:])
         
     print(f"noise variance = {noise_var}, AA-MINE MI = {final_mi}")
     return final_mi
@@ -98,7 +100,8 @@ def mi_mine(representation_t, y_label, input_dim=20, noise_var = 0.5, n_epoch = 
     if SHOW:
         plt.plot(-plot_y,color='r', label="MINE")
     
-    final_mi = np.mean(-plot_y[-35:])
+    # final_mi = np.mean(-plot_y[-35:])
+    final_mi = np.mean(-plot_y[-50:])
     
     if SHOW:
 

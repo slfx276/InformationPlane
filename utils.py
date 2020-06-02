@@ -10,7 +10,6 @@ import time
 import logging
 import sys
 import argparse
-from model import MNIST_Net
 import pickle
 import os
 
@@ -28,9 +27,9 @@ def dataLoader(batch_size = 256):
     testSet = datasets.MNIST(root='MNIST', download=True, train=False,
                             transform=transform)
     trainLoader = torch.utils.data.DataLoader(trainSet, batch_size=batch_size,
-                                            shuffle=True)
+                                            shuffle=True, num_workers=8)
     testLoader = torch.utils.data.DataLoader(testSet, batch_size=batch_size,
-                                            shuffle=False)
+                                            shuffle=False, num_workers=8)
 
     return trainLoader, testLoader
 
@@ -65,13 +64,13 @@ def get_parser():
     parser.add_argument("-e", "--mnistepoch", type=int, default=10, dest = "mnist_epoch",
                             help="set training epochs of MNIST model")
 
-    parser.add_argument("-var", "--noisevariance", type=float, default=0.01, dest = "noise_var",
+    parser.add_argument("-var", "--noisevariance", type=float, default=2, dest = "noise_var",
                             help="noise variance in noisy representation while using MINE ")
 
-    parser.add_argument("-mie", "--mineepoch", type=int, default=250, dest = "mine_epoch",
+    parser.add_argument("-mie", "--mineepoch", type=int, default=500, dest = "mine_epoch",
                             help="training epochs of MINE model while estimating mutual information")
 
-    parser.add_argument("-amie", "--amineepoch", type=int, default=250, dest = "aamine_epoch",
+    parser.add_argument("-amie", "--amineepoch", type=int, default=1500, dest = "aamine_epoch",
                             help="how many batch do you want to combined into a group in order to calculate MI")
 
     # 59 because 1024*59 > 60000
@@ -96,6 +95,10 @@ def get_parser():
     parser.add_argument("-cls", "--cleanfile",  action="store_true", dest="clean_old_files", 
                             help="clean old data before creating new ones")
 
+    # you should specify MNIST model type every time
+    parser.add_argument("-m", "--nntype", type=str, default="mlprelu", dest="model_type", 
+                            help="NN model type could be mlp or cnn.")
+
     return parser.parse_args()
 
 
@@ -103,6 +106,8 @@ def check_MI():
     with open("repre/arguments.pkl", "rb") as f:
         args, title, num_batchGroups, samples_size, dimensions = pickle.load(f)
     num_layers = len(dimensions)
+    print(args.folder_name)
+    print(f"layers = {num_layers}")
     for layer_idx in range(num_layers):
         for epoch in range(args.mnist_epoch):
             for bg_idx in range(num_batchGroups):
