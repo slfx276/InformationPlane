@@ -17,6 +17,7 @@ usage: Create inputs of main.py [-h] [-bs BATCH_SIZE] [-e MNIST_EPOCH]
                                 [-amie AAMINE_EPOCH] [-bg BATCH_GROUP]
                                 [-f FOLDER_NAME] [-opt MNIST_OPT]
                                 [-lr MNIST_LR] [-re] [-show] [-cls]
+                                [-m MODEL_TYPE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -46,28 +47,29 @@ optional arguments:
   -re, --retrain        Retrain MNIST model and then store new representations
   -show, --showmine     show and save MINE training trend. (need GUI)
   -cls, --cleanfile     clean old data before creating new ones
+  -m MODEL_TYPE, --nntype MODEL_TYPE
+                        NN model type could be mlp or cnn.
 
 ```
 
 ### Usage Example
 ```
-CUDA_VISIBLE_DEVICES=[GPU number] time python main.py -cls -re -show -f ParallelSplitRepre3
+CUDA_VISIBLE_DEVICES=[GPU number] time python main.py -cls -re -show -f sigmoid100epochs -m mlpsigmoid -e 100 -mie 500 -amie 1500
 ```
-Then figures of AA-MINE & MINE training process would be saved in folder "ParallelSplitRepre3".   
-and information plane would be saved in current path.   
+Then figures of AA-MINE & MINE training process would be saved in folder "sigmoid100epochs".      
 All representations would be saved in directory "repre" until the next excution.
 
-if you want to speed up calculating, you can use 
+if you want to speed up calculating, you could use command below with different GPU (after finishing MNIST model training).
 ```
 CUDA_VISIBLE_DEVICES=[Other GPUs] python main.py     # Do not use arguments especially -re & -cls.
 ```
-Finally, use plots.py to gather all MI value and visualize on information plane.
+Finally, use plots.py to gather all MI values and then visualize them on information plane.
 ```
 python plots.py
 ```
   
-  
-![image](https://github.com/slfx276/InformationPlane/blob/master/ip_bs4096_e10_var0.01_bg59_adam_lr0.001_mie250_amie250_500_256_10__ParallelSplitRepre3.png)  
+
+![image](https://github.com/slfx276/InformationPlane/blob/master/ip_bs4096_e100_var2_bg59_adam_lr0.001_mie500_amie1500_typemlpsigmoid500_256_10__sigmoid100epochs.png)  
   
 (Optional)  
 You could use utils.py to check the rate of progress on calculating MI.  
