@@ -1,3 +1,5 @@
+**This repository is a little bit messy, it hasn't been refactorized yet...**
+
 # InformationPlane
 Calculating mutual information while training MNIST model by mutual information estimator  
 
@@ -5,6 +7,8 @@ Calculating mutual information while training MNIST model by mutual information 
 - [Opening the black box of Deep Neural Networks via Information](https://arxiv.org/pdf/1703.00810.pdf)
 - [Mutual Information Neural Estimation](https://arxiv.org/pdf/1801.04062.pdf)
 - [THE EFFECTIVENESS OF LAYER-BY-LAYER TRAINING USING THE INFORMATION BOTTLENECK PRINCIPLE](https://openreview.net/pdf?id=r1Nb5i05tX)
+
+
 
 ### Environment
 - pytorch-gpu
@@ -79,3 +83,4 @@ python utils.py
 
 ### reference
 - [how to plot multi-colored line with matplotlib](https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/multicolored_line.html)  
+- [Mine_pytorch](https://github.com/MasanoriYamada/Mine_pytorch/blob/master/mine.ipynb)
